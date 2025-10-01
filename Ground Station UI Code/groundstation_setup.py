@@ -5,8 +5,6 @@ from PyQt6.QtWidgets import (                                  # PyQt6 imported 
 )
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QAction, QIcon
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
 import sys
 
 class MainWindow(QWidget):                                     # Window setup
