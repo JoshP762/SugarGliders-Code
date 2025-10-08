@@ -13,7 +13,7 @@ def main():
     app = QApplication(sys.argv)
     window = QMainWindow()
     window.setGeometry(800, 300, 600, 600)
-    window.setWindowTitle('sugar gliders test window opal')
+    window.setWindowTitle('Sugar Gliders test window')
     window.setWindowIcon(QIcon("Sugargliderstopicon.jpg"))
     
     
