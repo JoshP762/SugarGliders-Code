@@ -14,8 +14,11 @@ class SugarGlidersGS(QMainWindow):
         self.setGeometry(800, 300, 1000, 800)
         self.setWindowTitle('Sugar Gliders Ground Station')
         self.setWindowIcon(QIcon("Sugargliderstopicon.jpg"))
+        self.LED_on=False
+        self.buzzer_on=False
+
         self.setup_ui()
-        
+
     # Object Setup
     # ==============================================
 
@@ -31,7 +34,7 @@ class SugarGlidersGS(QMainWindow):
         button_container=QWidget()
         button_layout=QVBoxLayout(button_container)
         button_label=QLabel('Buttons')
-        button_label.setStyleSheet("font-size: 20pt; color: black;")
+        button_label.setStyleSheet("font-size: 20pt; color: white;")
         button_layout.addWidget(button_label)
 
         # Buttons
@@ -51,15 +54,15 @@ class SugarGlidersGS(QMainWindow):
 
         # Row 2 buttons 
         row2 = QHBoxLayout()
-        LED = QtWidgets.QPushButton('Toggle LED')  # LED
-        LED.setMinimumSize(QSize(100,30))
-        LED.clicked.connect(LED_clicked)
-        
-        buzzer = QtWidgets.QPushButton('Toggle Buzzer')  # Buzzer
-        buzzer.setMinimumSize(QSize(100,30))
-        buzzer.clicked.connect(buzzer_clicked)
-        row2.addWidget(LED)
-        row2.addWidget(buzzer)
+        self.LED = QtWidgets.QPushButton('LED OFF')  # LED
+        self.LED.setMinimumSize(QSize(100, 30))
+        self.LED.clicked.connect(self.LED_clicked)
+
+        self.buzzer = QtWidgets.QPushButton('Buzzer OFF')  # Buzzer
+        self.buzzer.setMinimumSize(QSize(100, 30))
+        self.buzzer.clicked.connect(self.buzzer_clicked)
+        row2.addWidget(self.LED)
+        row2.addWidget(self.buzzer)
 
         # Row 3 buttons 
         row3 = QHBoxLayout()
@@ -85,7 +88,7 @@ class SugarGlidersGS(QMainWindow):
         label_layout=QVBoxLayout(label_container)
 
         data_title=QLabel('Data')
-        data_title.setStyleSheet("font-size: 20pt; color: black;")
+        data_title.setStyleSheet("font-size: 20pt; color: white;")
         label_layout.addWidget(data_title)
 
         # Data
@@ -120,27 +123,57 @@ class SugarGlidersGS(QMainWindow):
 
         graphs = pg.GraphicsLayoutWidget()
         graphs.setStyleSheet("background-color: #f0f0f0;")
-        
-        plot1 = graphs.addPlot(row=0, col=0, title="Altitude")
-        plot2 = graphs.addPlot(row=0, col=1, title="Temperature")
-        plot3 = graphs.addPlot(row=1, col=0, title="Voltage")
-        plot4 = graphs.addPlot(row=1, col=1, title="Velocity")
+
+        self.plot1 = graphs.addPlot(row=0, col=0, title="Altitude")
+        self.plot1.setLabel('left', 'Altitude (m)')
+        self.plot1.setLabel('bottom', 'Time (s)')
+
+        self.plot2 = graphs.addPlot(row=0, col=1, title="Temperature")
+        self.plot2.setLabel('left', 'Temperature (°C)')
+        self.plot2.setLabel('bottom', 'Time (s)')
+
+        self.plot3 = graphs.addPlot(row=1, col=0, title="Voltage")
+        self.plot3.setLabel('left', 'Voltage (V)')
+        self.plot3.setLabel('bottom', 'Time (s)')
+
+        self.plot4 = graphs.addPlot(row=1, col=1, title="Speed")
+        self.plot4.setLabel('left', 'Velocity (m/s)')
+        self.plot4.setLabel('bottom', 'Time (s)')
 
         x_data = [1, 2, 3, 4, 5]
         y_data_alt = [10, 20, 15, 25, 30]
         y_data_temp = [20, 22, 21, 23, 25]
         y_data_volt = [4.5, 4.2, 4.3, 4.1, 4.0]
         y_data_vel = [5, 10, 8, 12, 15]
+        y_data_acc = [2, 4, 6, 8, 10]
 
         # Plot the data on each plot
-        plot1.plot(x_data, y_data_alt, pen=('r'))  # ('r', #) - # changes line thickness
-        plot2.plot(x_data, y_data_temp, pen=('b'))
-        plot3.plot(x_data, y_data_volt, pen=('g'))
-        plot4.plot(x_data, y_data_vel, pen=('y'))
+        self.plot1.plot(x_data, y_data_alt, pen='red')
+        self.plot2.plot(x_data, y_data_temp, pen='blue')
+        self.plot3.plot(x_data, y_data_volt, pen='green')
+        self.plot4.plot(x_data, y_data_vel, pen='yellow')
+
 
         main_layout.addWidget(graphs)
         self.setCentralWidget(main_widget)
 
+    def LED_clicked(self):
+        self.LED_on = not self.LED_on
+        self.LED.setText("LED ON" if self.LED_on else "LED OFF")
+        if self.LED_on:
+            self.LED.setStyleSheet("background-color: red; color: white;")
+        else:
+            self.LED.setStyleSheet("background-color: none; color: white;")
+        print("LED turned ON" if self.LED_on else "LED turned OFF")
+
+    def buzzer_clicked(self):
+        self.buzzer_on = not self.buzzer_on
+        self.buzzer.setText("Buzzer ON" if self.buzzer_on else "Buzzer OFF")
+        if self.buzzer_on:
+            self.buzzer.setStyleSheet("background-color: red; color: white;")
+        else:
+            self.buzzer.setStyleSheet("background-color: none; color: white;")
+        print("Buzzer turned ON" if self.buzzer_on else "Buzzer turned OFF")
 
 
 def create_color_label(text):
@@ -156,13 +189,6 @@ def calibration_clicked():
     print('Calibration Pressed')
     #tell pico to tell sensors to shut up and listen
 
-def LED_clicked():
-    print('LED Pressed')
-    #Turn LED on and off
-
-def buzzer_clicked():
-    print('Buzzer Pressed')
-    #turn buzzer on and off
 
 def ping_clicked():
     print('Ping Pressed')
