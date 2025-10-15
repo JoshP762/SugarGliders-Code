@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QLabel
-from PyQt6.QtCore import QTimer, QSize
+from PyQt6.QtCore import Qt, QTimer, QSize
 import pyqtgraph as pg
 import numpy as np
 from PyQt6 import QtWidgets 
@@ -27,16 +27,26 @@ class SugarGlidersGS(QMainWindow):
         main_widget = QWidget()
         main_layout=QHBoxLayout(main_widget)
 
-        main_widget.setStyleSheet("background-color: #ADD8E6;") # HEX color bg
+        main_widget.setStyleSheet("background-color: #ABDAFC;") # HEX color bg
 
         leftcol_container=QWidget()
         leftcol_layout=QVBoxLayout(leftcol_container)
 
         button_container=QWidget()
         button_layout=QVBoxLayout(button_container)
-        button_label=QLabel('Buttons')
-        button_label.setStyleSheet("font-size: 20pt; color: #015482;")
+        button_label=QLabel('BUTTONS')
+        button_label.setStyleSheet("font-size: 20pt; font-weight: bold; color: #015482;")
         button_layout.addWidget(button_label)
+
+        label_container=QWidget()
+        label_layout=QVBoxLayout(label_container)
+
+        # TEAM TITLE
+        # ==============================================
+        title = QLabel('SUGAR GLIDERS')
+        title.setStyleSheet("font-size: 24pt; font-weight: bold; color: #015482;")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        leftcol_layout.addWidget(title)
 
         # Dropdown COM port
         # ==============================================
@@ -102,11 +112,8 @@ class SugarGlidersGS(QMainWindow):
 
         # Data objects
 
-        label_container=QWidget()
-        label_layout=QVBoxLayout(label_container)
-
-        data_title=QLabel('Data')
-        data_title.setStyleSheet("font-size: 20pt; color: #015482;")
+        data_title=QLabel('DATA')
+        data_title.setStyleSheet("font-size: 20pt; font-weight: bold; color: #015482;")
         label_layout.addWidget(data_title)
 
         # Data
@@ -166,23 +173,22 @@ class SugarGlidersGS(QMainWindow):
         y_data_acc = [2, 4, 6, 8, 10]
 
         # Plot the data on each plot
-        self.plot1.plot(x_data, y_data_alt, pen='red')
-        self.plot2.plot(x_data, y_data_temp, pen='blue')
-        self.plot3.plot(x_data, y_data_volt, pen='green')
-        self.plot4.plot(x_data, y_data_vel, pen='black')
+        pen_style = pg.mkPen(color='#EC7357', width=5)  # Change color and line width
+        self.plot1.plot(x_data, y_data_alt, pen=pen_style)
+        self.plot2.plot(x_data, y_data_temp, pen=pen_style)
+        self.plot3.plot(x_data, y_data_volt, pen=pen_style)
+        self.plot4.plot(x_data, y_data_vel, pen=pen_style)
+
 
 
         main_layout.addWidget(graphs)
         self.setCentralWidget(main_widget)
 
     def LED_clicked(self):
-        self.LED_on = not self.LED_on
-        self.LED.setText("LED ON" if self.LED_on else "LED OFF")
-        if self.LED_on:
-            self.LED.setStyleSheet("background-color: red; color: white;")
+        if self.LED.isChecked():
+            self.LED.setStyleSheet("background-color : red")
         else:
-            self.LED.setStyleSheet("background-color: none; color: white;")
-        print("LED turned ON" if self.LED_on else "LED turned OFF")
+            self.LED.setStyleSheet("background-color : lightgray")
 
     def buzzer_clicked(self):
         self.buzzer_on = not self.buzzer_on
