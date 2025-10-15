@@ -6,6 +6,7 @@ import numpy as np
 from PyQt6 import QtWidgets 
 from PyQt6.QtGui import QIcon
 import serial
+from serial.tools import list_ports
 import csv
 
 class SugarGlidersGS(QMainWindow):
@@ -26,7 +27,7 @@ class SugarGlidersGS(QMainWindow):
         main_widget = QWidget()
         main_layout=QHBoxLayout(main_widget)
 
-        main_widget.setStyleSheet("background-color: #black;") # HEX color bg
+        main_widget.setStyleSheet("background-color: #ADD8E6;") # HEX color bg
 
         leftcol_container=QWidget()
         leftcol_layout=QVBoxLayout(leftcol_container)
@@ -34,8 +35,25 @@ class SugarGlidersGS(QMainWindow):
         button_container=QWidget()
         button_layout=QVBoxLayout(button_container)
         button_label=QLabel('Buttons')
-        button_label.setStyleSheet("font-size: 20pt; color: white;")
+        button_label.setStyleSheet("font-size: 20pt; color: #015482;")
         button_layout.addWidget(button_label)
+
+        # Dropdown COM port
+        # ==============================================
+        comport=QWidget()
+        com_layout= QVBoxLayout(comport)
+
+        self.com_dropdown=QtWidgets.QComboBox()
+        self.com_dropdown.setStyleSheet("color: #015482; background-color: white;")
+        self.com_dropdown
+        self.portrefresh()
+        com_layout.addWidget(self.com_dropdown)
+        XBee_button = QtWidgets.QPushButton("Connect to XBee")
+        XBee_button.setMinimumSize(QSize(100, 30))
+        XBee_button.clicked.connect(self.connect_xbee)
+        com_layout.addWidget(XBee_button)
+        
+        leftcol_layout.addWidget(comport)
 
         # Buttons
         # ==============================================
@@ -88,7 +106,7 @@ class SugarGlidersGS(QMainWindow):
         label_layout=QVBoxLayout(label_container)
 
         data_title=QLabel('Data')
-        data_title.setStyleSheet("font-size: 20pt; color: white;")
+        data_title.setStyleSheet("font-size: 20pt; color: #015482;")
         label_layout.addWidget(data_title)
 
         # Data
@@ -151,7 +169,7 @@ class SugarGlidersGS(QMainWindow):
         self.plot1.plot(x_data, y_data_alt, pen='red')
         self.plot2.plot(x_data, y_data_temp, pen='blue')
         self.plot3.plot(x_data, y_data_volt, pen='green')
-        self.plot4.plot(x_data, y_data_vel, pen='yellow')
+        self.plot4.plot(x_data, y_data_vel, pen='black')
 
 
         main_layout.addWidget(graphs)
@@ -175,11 +193,30 @@ class SugarGlidersGS(QMainWindow):
             self.buzzer.setStyleSheet("background-color: none; color: white;")
         print("Buzzer turned ON" if self.buzzer_on else "Buzzer turned OFF")
 
+    def portrefresh(self):
+        ports=list_ports.comports()
+        self.com_dropdown.clear()
+        for port in ports:
+            self.com_dropdown.addItem(port.device)
 
-def create_color_label(text):
-    label=QLabel(text)
-    label.setStyleSheet("color: black;")
-    return label
+    def connect_xbee(self):
+        XBeeport = self.com_dropdown.currentText()
+        if XBeeport:
+            try:
+                self.serial_connection = serial.Serial(XBeeport, 9600, timeout=1)
+                print("Connected to XBee on " + XBeeport)
+            except serial.SerialException as e:
+                print("Failed to connect: " + str(e))
+        else:
+            print("No COM port selected.")
+
+
+
+
+#def create_color_label(text):
+   # label=QLabel(text)
+ #   label.setStyleSheet("color: black;")
+  #  return label
    
 def manual_release_clicked():
     print('Manual Release Pressed')
