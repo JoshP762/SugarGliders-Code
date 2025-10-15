@@ -176,13 +176,10 @@ class SugarGlidersGS(QMainWindow):
         self.setCentralWidget(main_widget)
 
     def LED_clicked(self):
-        self.LED_on = not self.LED_on
-        self.LED.setText("LED ON" if self.LED_on else "LED OFF")
-        if self.LED_on:
-            self.LED.setStyleSheet("background-color: red; color: white;")
+        if self.LED.isChecked():
+            self.LED.setStyleSheet("background-color : red")
         else:
-            self.LED.setStyleSheet("background-color: none; color: white;")
-        print("LED turned ON" if self.LED_on else "LED turned OFF")
+            self.LED.setStyleSheet("background-color : lightgray")
 
     def buzzer_clicked(self):
         self.buzzer_on = not self.buzzer_on
