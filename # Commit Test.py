@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import QTimer
 import pyqtgraph as pg
 
 
@@ -14,56 +14,59 @@ class GroundStation(QWidget):
         mainLayout = QVBoxLayout()
     
         # Creating Lables 
-        labelLayout = QVBoxLayout()
+        labelLayoutTop = QHBoxLayout()
+        labelLayoutBottom = QHBoxLayout()
 
         self.TeamID = QLabel("Team_ID")
-        labelLayout.addWidget(self.TeamID)
+        labelLayoutTop.addWidget(self.TeamID)
 
         self.MissionTime = QLabel("Mission_Time")
-        labelLayout.addWidget(self.MissionTime)
+        labelLayoutTop.addWidget(self.MissionTime)
 
         self.PacketCount = QLabel("Packet_Count")
-        labelLayout.addWidget(self.PacketCount)
+        labelLayoutTop.addWidget(self.PacketCount)
 
         self.SWState = QLabel("SW_State")
-        labelLayout.addWidget(self.SWState)
+        labelLayoutTop.addWidget(self.SWState)
 
         self.PLState = QLabel("PL_State")
-        labelLayout.addWidget(self.PLState)
+        labelLayoutTop.addWidget(self.PLState)
 
         self.Altitude = QLabel("Altitude")
-        labelLayout.addWidget(self.Altitude)
+        labelLayoutTop.addWidget(self.Altitude)
 
         self.Temp = QLabel("Temperture")
-        labelLayout.addWidget(self.Temp)
+        labelLayoutTop.addWidget(self.Temp)
 
         self.Volt = QLabel("Voltage")
-        labelLayout.addWidget(self.Volt)
+        labelLayoutBottom.addWidget(self.Volt)
 
         self.GPSLat = QLabel("GPS_Latitude")
-        labelLayout.addWidget(self.GPSLat)
+        labelLayoutBottom.addWidget(self.GPSLat)
         
         self.GPSLong = QLabel("GPS_Longitude")
-        labelLayout.addWidget(self.GPSLong)
+        labelLayoutBottom.addWidget(self.GPSLong)
 
         self.GyroR = QLabel("GYRO_R")
-        labelLayout.addWidget(self.GyroR)
+        labelLayoutBottom.addWidget(self.GyroR)
 
         self.GyroP = QLabel("GYRO_P")
-        labelLayout.addWidget(self.GyroP)
+        labelLayoutBottom.addWidget(self.GyroP)
 
         self.GyroY = QLabel("GYRO_Y")
-        labelLayout.addWidget(self.GyroY)
+        labelLayoutBottom.addWidget(self.GyroY)
 
         self.Vel = QLabel("Velocity")
-        labelLayout.addWidget(self.Vel)
+        labelLayoutBottom.addWidget(self.Vel)
 
         self.Acc = QLabel("Acceleration")
-        labelLayout.addWidget(self.Acc)
+        labelLayoutBottom.addWidget(self.Acc)
 
+        labelLayout = QVBoxLayout()
+        labelLayout.addLayout(labelLayoutTop)
+        labelLayout.addLayout(labelLayoutBottom)
         mainLayout.addLayout(labelLayout)
         self.setLayout(mainLayout)
-        mainLayout.addStretch(1)
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.updateTelemetry)
