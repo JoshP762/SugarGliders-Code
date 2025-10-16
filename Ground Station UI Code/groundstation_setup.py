@@ -59,6 +59,7 @@ class SugarGlidersGS(QMainWindow):
         self.portrefresh()
         com_layout.addWidget(self.com_dropdown)
         XBee_button = QtWidgets.QPushButton("Connect to XBee")
+        XBee_button.setStyleSheet("color: #015482")
         XBee_button.setMinimumSize(QSize(100, 30))
         XBee_button.clicked.connect(self.connect_xbee)
         com_layout.addWidget(XBee_button)
@@ -71,10 +72,12 @@ class SugarGlidersGS(QMainWindow):
         # Row 1 buttons
         row1=QHBoxLayout()
         manual_release=QtWidgets.QPushButton('Manual Release')  # Manual Release
+        manual_release.setStyleSheet("color: #015482")
         manual_release.setMinimumSize(QSize(100,30))
         manual_release.clicked.connect(manual_release_clicked)
         
-        calibration = QtWidgets.QPushButton('Calibration')  # Calibration
+        calibration = QtWidgets.QPushButton('Calibration') # Calibration
+        calibration.setStyleSheet("color: #015482")
         calibration.setMinimumSize(QSize(100,30))
         calibration.clicked.connect(calibration_clicked)
         row1.addWidget(manual_release)
@@ -83,11 +86,13 @@ class SugarGlidersGS(QMainWindow):
         # Row 2 buttons 
         row2 = QHBoxLayout()
         self.LED = QtWidgets.QPushButton('LED OFF')  # LED
+        self.LED.setStyleSheet("color: #015482")
         self.LED.setMinimumSize(QSize(100, 30))
         self.LED.clicked.connect(self.LED_clicked)
 
         self.buzzer = QtWidgets.QPushButton('Buzzer OFF')  # Buzzer
         self.buzzer.setMinimumSize(QSize(100, 30))
+        self.buzzer.setStyleSheet("color: #015482")
         self.buzzer.clicked.connect(self.buzzer_clicked)
         row2.addWidget(self.LED)
         row2.addWidget(self.buzzer)
@@ -95,11 +100,13 @@ class SugarGlidersGS(QMainWindow):
         # Row 3 buttons 
         row3 = QHBoxLayout()
         ping = QtWidgets.QPushButton('Ping')  # Ping
+        ping.setStyleSheet("color: #015482")
         ping.setMinimumSize(QSize(100,30))
         ping.clicked.connect(ping_clicked)
         
         simulation = QtWidgets.QPushButton('Simulation')  # Simulation
         simulation.setMinimumSize(QSize(100,30))
+        simulation.setStyleSheet("color: #015482")
         simulation.clicked.connect(simulation_clicked)
         row3.addWidget(ping)
         row3.addWidget(simulation)
@@ -119,21 +126,67 @@ class SugarGlidersGS(QMainWindow):
         # Data
         # ==============================================
 
-        label_layout.addWidget(QLabel('Team 2: The Sugar Gliders'))
-        label_layout.addWidget(QLabel('Mission time:'))
-        label_layout.addWidget(QLabel('Packet count:'))
-        label_layout.addWidget(QLabel('SW state:'))
-        label_layout.addWidget(QLabel('PL state:'))
-        label_layout.addWidget(QLabel('Altitude:'))
-        label_layout.addWidget(QLabel('Temperature:'))
-        label_layout.addWidget(QLabel('Voltage:'))
-        label_layout.addWidget(QLabel('GPS_Latitude:'))
-        label_layout.addWidget(QLabel('GPS_Longitude:'))
-        label_layout.addWidget(QLabel('Gyro_R:'))
-        label_layout.addWidget(QLabel('Gyro_P:'))
-        label_layout.addWidget(QLabel('Gyro_Y:'))
-        label_layout.addWidget(QLabel('Velocity:'))
-        label_layout.addWidget(QLabel('Acceleration:'))
+        
+        self.teamID = QLabel("Team ID")
+        label_layout.addWidget(self.teamID)
+        self.teamID.setStyleSheet("color : #015482")
+        
+        self.MissionTime = QLabel("Mission_Time")
+        label_layout.addWidget(self.MissionTime)
+        self.MissionTime.setStyleSheet("color : #015482")
+        
+        self.PacketCount = QLabel("Packet_Count")
+        label_layout.addWidget(self.PacketCount)
+        self.PacketCount.setStyleSheet("color : #015482")
+        
+        self.SWState = QLabel("SW_State")
+        label_layout.addWidget(self.SWState)
+        self.SWState.setStyleSheet("color : #015482")
+
+        self.PLState = QLabel("PL_State")
+        label_layout.addWidget(self.PLState)
+        self.PLState.setStyleSheet("color : #015482")
+        
+        self.Altitude = QLabel("Altitude")
+        label_layout.addWidget(self.Altitude)
+        self.Altitude.setStyleSheet("color : #015482")
+        
+        self.Temp = QLabel("Temperture")
+        label_layout.addWidget(self.Temp)
+        self.Temp.setStyleSheet("color : #015482")
+        
+        self.Volt = QLabel("Voltage")
+        label_layout.addWidget(self.Volt)
+        self.Volt.setStyleSheet("color : #015482")
+        
+        self.GPSLat = QLabel("GPS_Latitude")
+        label_layout.addWidget(self.GPSLat)
+        self.GPSLat.setStyleSheet("color : #015482")
+        
+        self.GPSLong = QLabel("GPS_Longitude")
+        label_layout.addWidget(self.GPSLong)
+        self.GPSLong.setStyleSheet("color : #015482")
+        
+        self.GyroR = QLabel("GYRO_R")
+        label_layout.addWidget(self.GyroR)
+        self.GyroR.setStyleSheet("color : #015482")
+
+        
+        self.GyroP = QLabel("GYRO_P")
+        label_layout.addWidget(self.GyroP)
+        self.GyroP.setStyleSheet("color : #015482")
+        
+        self.GyroY = QLabel("GYRO_Y")
+        label_layout.addWidget(self.GyroY)
+        self.GyroY.setStyleSheet("color : #015482")
+        
+        self.Vel = QLabel("Velocity")
+        label_layout.addWidget(self.Vel)
+        self.Vel.setStyleSheet("color : #015482")
+        
+        self.Acc = QLabel("Acceleration")
+        label_layout.addWidget(self.Acc)
+        self.Acc.setStyleSheet("color : #015482")
 
         leftcol_layout.addWidget(label_container)
         leftcol_layout.addStretch() 
@@ -185,19 +238,18 @@ class SugarGlidersGS(QMainWindow):
         self.setCentralWidget(main_widget)
 
     def LED_clicked(self):
-        if self.LED.isChecked():
+        self.LED_on = not self.LED_on
+        if self.LED_on:
             self.LED.setStyleSheet("background-color : red")
         else:
-            self.LED.setStyleSheet("background-color : lightgray")
+            self.LED.setStyleSheet("background-color : #015482")
 
     def buzzer_clicked(self):
         self.buzzer_on = not self.buzzer_on
-        self.buzzer.setText("Buzzer ON" if self.buzzer_on else "Buzzer OFF")
         if self.buzzer_on:
-            self.buzzer.setStyleSheet("background-color: red; color: white;")
+            self.buzzer.setStyleSheet("background-color : red")
         else:
-            self.buzzer.setStyleSheet("background-color: none; color: white;")
-        print("Buzzer turned ON" if self.buzzer_on else "Buzzer turned OFF")
+            self.buzzer.setStyleSheet("background-color : #015482")
 
     def portrefresh(self):
         ports=list_ports.comports()

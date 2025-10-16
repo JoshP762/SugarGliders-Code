@@ -1,238 +1,166 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QLabel
-from PyQt6.QtCore import QTimer, QSize
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel
+from PyQt5.QtCore import QTimer
 import pyqtgraph as pg
-import numpy as np
-from PyQt6 import QtWidgets 
-from PyQt6.QtGui import QIcon
-import serial
-from serial.tools import list_ports
-import csv
 
-class SugarGlidersGS(QMainWindow):
-    def __init__(self):
-        super().__init__()
+
+class GroundStation(QWidget):
+    def __init__(self):     #constructor
+        super().__init__() #subclass calls the parent class
+
+        #creation of the window
+        self.setWindowTitle("Sugar Gliders Ground Station")
         self.setGeometry(800, 300, 1000, 800)
-        self.setWindowTitle('Sugar Gliders Ground Station')
-        self.setWindowIcon(QIcon("Sugargliderstopicon.jpg"))
-        self.LED_on=False
-        self.buzzer_on=False
+        mainLayout = QVBoxLayout()
+    
+        # Creating Lables 
+        labelLayout = QVBoxLayout()
 
-        self.setup_ui()
+        self.TeamID = QLabel("Team_ID")
+        labelLayout.addWidget(self.TeamID)
 
-    # Object Setup
-    # ==============================================
+        self.MissionTime = QLabel("Mission_Time")
+        labelLayout.addWidget(self.MissionTime)
 
-    def setup_ui(self):
-        main_widget = QWidget()
-        main_layout=QHBoxLayout(main_widget)
+        self.PacketCount = QLabel("Packet_Count")
+        labelLayout.addWidget(self.PacketCount)
 
-        main_widget.setStyleSheet("background-color: #ADD8E6;") # HEX color bg
+        self.SWState = QLabel("SW_State")
+        labelLayout.addWidget(self.SWState)
 
-        leftcol_container=QWidget()
-        leftcol_layout=QVBoxLayout(leftcol_container)
+        self.PLState = QLabel("PL_State")
+        labelLayout.addWidget(self.PLState)
 
-        button_container=QWidget()
-        button_layout=QVBoxLayout(button_container)
-        button_label=QLabel('Buttons')
-        button_label.setStyleSheet("font-size: 20pt; color: #015482;")
-        button_layout.addWidget(button_label)
+        self.Altitude = QLabel("Altitude")
+        labelLayout.addWidget(self.Altitude)
 
-        # Dropdown COM port
-        # ==============================================
-        comport=QWidget()
-        com_layout= QVBoxLayout(comport)
+        self.Temp = QLabel("Temperture")
+        labelLayout.addWidget(self.Temp)
 
-        self.com_dropdown=QtWidgets.QComboBox()
-        self.com_dropdown.setStyleSheet("color: #015482; background-color: white;")
-        self.com_dropdown
-        self.portrefresh()
-        com_layout.addWidget(self.com_dropdown)
-        XBee_button = QtWidgets.QPushButton("Connect to XBee")
-        XBee_button.setMinimumSize(QSize(100, 30))
-        XBee_button.clicked.connect(self.connect_xbee)
-        com_layout.addWidget(XBee_button)
+
+        self.Volt = QLabel("Voltage")
+        labelLayout.addWidget(self.Volt)
+
+        self.GPSLat = QLabel("GPS_Latitude")
+        labelLayout.addWidget(self.GPSLat)
         
-        leftcol_layout.addWidget(comport)
+        self.GPSLong = QLabel("GPS_Longitude")
+        labelLayout.addWidget(self.GPSLong)
 
-        # Buttons
-        # ==============================================
+        self.GyroR = QLabel("GYRO_R")
+        labelLayout.addWidget(self.GyroR)
+
+        self.GyroP = QLabel("GYRO_P")
+        labelLayout.addWidget(self.GyroP)
+
+        self.GyroY = QLabel("GYRO_Y")
+        labelLayout.addWidget(self.GyroY)
+
+        self.Vel = QLabel("Velocity")
+        labelLayout.addWidget(self.Vel)
+
+        self.Acc = QLabel("Acceleration")
+        labelLayout.addWidget(self.Acc)
+
+        mainLayout.addLayout(labelLayout)
+        self.setLayout(mainLayout)
+        mainLayout.addStretch(1)
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.updateTelemetry)
+        self.timer.start(1000)
+
+                        #Making Graphs
+        self.speedGraph = pg.PlotWidget(title = "Speed vs Time")
+        self.speedGraph.plotItem.setLabel('left', 'Speed', units='m/s')
+        self.speedGraph.plotItem.setLabel('bottom', 'Time', units='s')
+
+        self.tempGraph = pg.PlotWidget(title = "Temperture vs Time")
+        self.tempGraph.plotItem.setLabel('left', 'Temperture', units='C')
+        self.tempGraph.plotItem.setLabel('bottom', 'Time', units='s')
+
+        self.altitudeGraph = pg.PlotWidget(title = "Altitude vs Time")
+        self.altitudeGraph.plotItem.setLabel('left', 'Altitude', units='m')
+        self.altitudeGraph.plotItem.setLabel('bottom', 'Time', units='s')
+
+        self.voltGraph = pg.PlotWidget(title = "Voltage vs Time")
+        self.voltGraph.plotItem.setLabel('left', 'Volts', units='v')
+        self.voltGraph.plotItem.setLabel('bottom', 'Time', units='s')
+
+        self.LocGraph = pg.PlotWidget(title = "Lantitude Vs Longitude")
+        self.LocGraph.plotItem.setLabel('left', 'Lantitude', units='DD')
+        self.LocGraph.plotItem.setLabel('bottom', 'Longitude', units='DD')
+
+        graphLayout = QVBoxLayout()
+        topGraphs = QHBoxLayout()
+        topGraphs.addWidget(self.speedGraph)
+        topGraphs.addWidget(self.tempGraph)
+        graphLayout.addLayout(topGraphs)
+        bottomgraphs = QHBoxLayout()
+        bottomgraphs.addWidget(self.altitudeGraph)
+        bottomgraphs.addWidget(self.voltGraph)
+        bottomgraphs.addWidget(self.LocGraph)
+        graphLayout.addLayout(bottomgraphs)
+        mainLayout.addLayout(graphLayout)
+        self.setLayout(mainLayout)
+
+        #making buttons
+        buttonLayout = QHBoxLayout()
         
-        # Row 1 buttons
-        row1=QHBoxLayout()
-        manual_release=QtWidgets.QPushButton('Manual Release')  # Manual Release
-        manual_release.setMinimumSize(QSize(100,30))
-        manual_release.clicked.connect(manual_release_clicked)
-        
-        calibration = QtWidgets.QPushButton('Calibration')  # Calibration
-        calibration.setMinimumSize(QSize(100,30))
-        calibration.clicked.connect(calibration_clicked)
-        row1.addWidget(manual_release)
-        row1.addWidget(calibration)
+        self.manualRelease = QPushButton("Manual Release")
+        self.manualRelease.clicked.connect(self.manualReleaseActive)
+        buttonLayout.addWidget(self.manualRelease)
 
-        # Row 2 buttons 
-        row2 = QHBoxLayout()
-        self.LED = QtWidgets.QPushButton('LED OFF')  # LED
-        self.LED.setMinimumSize(QSize(100, 30))
-        self.LED.clicked.connect(self.LED_clicked)
+        self.Calibration = QPushButton("Calibration")
+        self.Calibration.clicked.connect(self.calibrationActive)
+        buttonLayout.addWidget(self.Calibration)
 
-        self.buzzer = QtWidgets.QPushButton('Buzzer OFF')  # Buzzer
-        self.buzzer.setMinimumSize(QSize(100, 30))
-        self.buzzer.clicked.connect(self.buzzer_clicked)
-        row2.addWidget(self.LED)
-        row2.addWidget(self.buzzer)
+        self.simulation = QPushButton("Simulation")
+        self.simulation.clicked.connect(self.simulationActive)
+        buttonLayout.addWidget(self.simulation) 
 
-        # Row 3 buttons 
-        row3 = QHBoxLayout()
-        ping = QtWidgets.QPushButton('Ping')  # Ping
-        ping.setMinimumSize(QSize(100,30))
-        ping.clicked.connect(ping_clicked)
-        
-        simulation = QtWidgets.QPushButton('Simulation')  # Simulation
-        simulation.setMinimumSize(QSize(100,30))
-        simulation.clicked.connect(simulation_clicked)
-        row3.addWidget(ping)
-        row3.addWidget(simulation)
+        self.LED = QPushButton("LED")
+        self.LED.setCheckable(True)
+        self.LED.clicked.connect(self.LEDactive)
+        buttonLayout.addWidget(self.LED)
 
-        button_layout.addLayout(row1)
-        button_layout.addLayout(row2)
-        button_layout.addLayout(row3)
-        button_layout.addStretch()
-        leftcol_layout.addWidget(button_container)  # Displays buttons
+        self.buzzer = QPushButton("Buzzer")
+        self.buzzer.setCheckable(True)
+        self.buzzer.clicked.connect(self.buzzerActive)
+        buttonLayout.addWidget(self.buzzer)
 
-        # Data objects
+        mainLayout.addLayout(buttonLayout)
+        self.setLayout(mainLayout)
 
-        label_container=QWidget()
-        label_layout=QVBoxLayout(label_container)
+    #functions for buttons 
+    def manualReleaseActive(self):
+        print("Payload Relased")
 
-        data_title=QLabel('Data')
-        data_title.setStyleSheet("font-size: 20pt; color: #015482;")
-        label_layout.addWidget(data_title)
+    def calibrationActive(self):
+        print("Senors Calibrated")
 
-        # Data
-        # ==============================================
+    def simulationActive(self):
+        print("Simulation Completed")
 
-        label_layout.addWidget(QLabel('Team 2: The Sugar Gliders'))
-        label_layout.addWidget(QLabel('Mission time:'))
-        label_layout.addWidget(QLabel('Packet count:'))
-        label_layout.addWidget(QLabel('SW state:'))
-        label_layout.addWidget(QLabel('PL state:'))
-        label_layout.addWidget(QLabel('Altitude:'))
-        label_layout.addWidget(QLabel('Temperature:'))
-        label_layout.addWidget(QLabel('Voltage:'))
-        label_layout.addWidget(QLabel('GPS_Latitude:'))
-        label_layout.addWidget(QLabel('GPS_Longitude:'))
-        label_layout.addWidget(QLabel('Gyro_R:'))
-        label_layout.addWidget(QLabel('Gyro_P:'))
-        label_layout.addWidget(QLabel('Gyro_Y:'))
-        label_layout.addWidget(QLabel('Velocity:'))
-        label_layout.addWidget(QLabel('Acceleration:'))
-
-        leftcol_layout.addWidget(label_container)
-        leftcol_layout.addStretch() 
-
-        main_layout.addWidget(leftcol_container)
-
-        # Graphs (ALL TEST)
-        # ==============================================
-
-        pg.setConfigOption('background', '#ffffff')  # white
-        pg.setConfigOption('foreground', 'k')  # black
-
-        graphs = pg.GraphicsLayoutWidget()
-        graphs.setStyleSheet("background-color: #f0f0f0;")
-
-        self.plot1 = graphs.addPlot(row=0, col=0, title="Altitude")
-        self.plot1.setLabel('left', 'Altitude (m)')
-        self.plot1.setLabel('bottom', 'Time (s)')
-
-        self.plot2 = graphs.addPlot(row=0, col=1, title="Temperature")
-        self.plot2.setLabel('left', 'Temperature (°C)')
-        self.plot2.setLabel('bottom', 'Time (s)')
-
-        self.plot3 = graphs.addPlot(row=1, col=0, title="Voltage")
-        self.plot3.setLabel('left', 'Voltage (V)')
-        self.plot3.setLabel('bottom', 'Time (s)')
-
-        self.plot4 = graphs.addPlot(row=1, col=1, title="Speed")
-        self.plot4.setLabel('left', 'Velocity (m/s)')
-        self.plot4.setLabel('bottom', 'Time (s)')
-
-        x_data = [1, 2, 3, 4, 5]
-        y_data_alt = [10, 20, 15, 25, 30]
-        y_data_temp = [20, 22, 21, 23, 25]
-        y_data_volt = [4.5, 4.2, 4.3, 4.1, 4.0]
-        y_data_vel = [5, 10, 8, 12, 15]
-        y_data_acc = [2, 4, 6, 8, 10]
-
-        # Plot the data on each plot
-        self.plot1.plot(x_data, y_data_alt, pen='red')
-        self.plot2.plot(x_data, y_data_temp, pen='blue')
-        self.plot3.plot(x_data, y_data_volt, pen='green')
-        self.plot4.plot(x_data, y_data_vel, pen='black')
-
-
-        main_layout.addWidget(graphs)
-        self.setCentralWidget(main_widget)
-
-    def LED_clicked(self):
-        self.LED_on = not self.LED_on
-        if self.LED_on:
-            self.LED.setStyleSheet("background-color: red; color: white;")
+    def LEDactive(self):
+        if self.LED.isChecked():
+            self.LED.setStyleSheet("background-color : red")
         else:
-            self.LED.setStyleSheet("background-color: none; color: white;")
+            self.LED.setStyleSheet("background-color : lightgray")
 
-    def buzzer_clicked(self):
-        self.buzzer_on = not self.buzzer_on
-        if self.buzzer_on:
-            self.buzzer.setStyleSheet("background-color: red; color: white;")
+    def buzzerActive(self):
+        if self.buzzer.isChecked():
+            self.buzzer.setStyleSheet("background-color : red")
         else:
-            self.buzzer.setStyleSheet("background-color: none; color: white;")
+            self.buzzer.setStyleSheet("background-color : lightgray")
 
-    def portrefresh(self):
-        ports=list_ports.comports()
-        self.com_dropdown.clear()
-        for port in ports:
-            self.com_dropdown.addItem(port.device)
+    # fuction to import data (work in progress) (going to have to make get function to obtain data from CSV and than floow the format to replace the label)
+    def updateTelemetry(self):
+        self.TeamID.setText('Team_ID: 2')
 
-    def connect_xbee(self):
-        XBeeport = self.com_dropdown.currentText()
-        if XBeeport:
-            try:
-                self.serial_connection = serial.Serial(XBeeport, 9600, timeout=1)
-                print("Connected to XBee on " + XBeeport)
-            except serial.SerialException as e:
-                print("Failed to connect: " + str(e))
-        else:
-            print("No COM port selected.")
-
-
-
-
-#def create_color_label(text):
-   # label=QLabel(text)
- #   label.setStyleSheet("color: black;")
-  #  return label
-   
-def manual_release_clicked():
-    print('Manual Release Pressed')
-    #release payload here
-
-def calibration_clicked():
-    print('Calibration Pressed')
-    #tell pico to tell sensors to shut up and listen
-
-
-def ping_clicked():
-    print('Ping Pressed')
-    #ping
-
-def simulation_clicked():
-    print('Simulation Pressed')
-    #simulate
-
-if __name__ == "__main__":
+# closing the window 
+if __name__ == "__main__": #can only be run if from the right window (not if imported)
     app = QApplication(sys.argv)
-    window = SugarGlidersGS()
+    window = GroundStation()
     window.show()
-    sys.exit(app.exec())
+    sys.exit(app.exec_())
