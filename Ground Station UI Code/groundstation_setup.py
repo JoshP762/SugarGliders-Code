@@ -61,6 +61,7 @@ class SugarGlidersGS(QMainWindow):
         XBee_button = QtWidgets.QPushButton("Connect to XBee")
         XBee_button.setStyleSheet("color: #015482")
         XBee_button.setMinimumSize(QSize(100, 30))
+        XBee_button.setStyleSheet("color: #000000; background-color: white;")
         XBee_button.clicked.connect(self.connect_xbee)
         com_layout.addWidget(XBee_button)
         
@@ -74,11 +75,13 @@ class SugarGlidersGS(QMainWindow):
         manual_release=QtWidgets.QPushButton('Manual Release')  # Manual Release
         manual_release.setStyleSheet("color: #015482")
         manual_release.setMinimumSize(QSize(100,30))
+        manual_release.setStyleSheet("color: #000000; background-color: white;")
         manual_release.clicked.connect(manual_release_clicked)
         
         calibration = QtWidgets.QPushButton('Calibration') # Calibration
         calibration.setStyleSheet("color: #015482")
         calibration.setMinimumSize(QSize(100,30))
+        calibration.setStyleSheet("color: #000000; background-color: white;")
         calibration.clicked.connect(calibration_clicked)
         row1.addWidget(manual_release)
         row1.addWidget(calibration)
@@ -88,11 +91,11 @@ class SugarGlidersGS(QMainWindow):
         self.LED = QtWidgets.QPushButton('LED OFF')  # LED
         self.LED.setStyleSheet("color: #015482")
         self.LED.setMinimumSize(QSize(100, 30))
+        self.LED.setStyleSheet("color: #000000; background-color: white;")
         self.LED.clicked.connect(self.LED_clicked)
 
         self.buzzer = QtWidgets.QPushButton('Buzzer OFF')  # Buzzer
         self.buzzer.setMinimumSize(QSize(100, 30))
-        self.buzzer.setStyleSheet("color: #015482")
         self.buzzer.clicked.connect(self.buzzer_clicked)
         row2.addWidget(self.LED)
         row2.addWidget(self.buzzer)
@@ -102,11 +105,11 @@ class SugarGlidersGS(QMainWindow):
         ping = QtWidgets.QPushButton('Ping')  # Ping
         ping.setStyleSheet("color: #015482")
         ping.setMinimumSize(QSize(100,30))
+        ping.setStyleSheet("color: #000000; background-color: white;")
         ping.clicked.connect(ping_clicked)
         
         simulation = QtWidgets.QPushButton('Simulation')  # Simulation
         simulation.setMinimumSize(QSize(100,30))
-        simulation.setStyleSheet("color: #015482")
         simulation.clicked.connect(simulation_clicked)
         row3.addWidget(ping)
         row3.addWidget(simulation)
@@ -242,7 +245,7 @@ class SugarGlidersGS(QMainWindow):
         if self.LED_on:
             self.LED.setStyleSheet("background-color : red")
         else:
-            self.LED.setStyleSheet("background-color : #015482")
+            self.LED.setStyleSheet("background-color : lightgray")
 
     def buzzer_clicked(self):
         self.buzzer_on = not self.buzzer_on
