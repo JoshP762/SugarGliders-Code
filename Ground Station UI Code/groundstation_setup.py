@@ -5,6 +5,7 @@ import pyqtgraph as pg
 import numpy as np
 from PyQt6 import QtWidgets 
 from PyQt6.QtGui import QIcon
+import re
 import serial
 from serial.tools import list_ports
 import csv
@@ -19,6 +20,33 @@ class SugarGlidersGS(QMainWindow):
         self.buzzer_on=False
 
         self.setup_ui()
+
+    # Serial Setup
+    # ==============================================
+
+    def start_serial_stream(self, port="COM18", baudrate=9600):
+        try:
+            self.serial = serial.Serial(port, baudrate, timeout=1)
+            self.altitude_data = []
+            self.time_data = []
+            self.timer = QTimer()
+            self.timer.timeout.connect(self.read_serial_data)
+            self.timer.start(100)  # Poll every 100ms
+            print("Serial stream started.")
+        except Exception as e:
+            print(f"Serial error: {e}")
+
+    def read_serial_data(self):
+        if self.serial.in_waiting:
+            line = self.serial.readline().decode('utf-8').strip()
+            match = re.search(r'Approx\. Altitude = ([\d\.]+)', line)
+            if match:
+                altitude = float(match.group(1))
+                self.Altitude.setText(f"Altitude: {altitude:.2f} m")
+                self.altitude_data.append(altitude)
+                self.time_data.append(len(self.altitude_data))  # simple time index
+                self.plot1.clear()
+                self.plot1.plot(self.time_data, self.altitude_data, pen='red')
 
     # Object Setup
     # ==============================================
@@ -40,6 +68,7 @@ class SugarGlidersGS(QMainWindow):
 
         label_container=QWidget()
         label_layout=QVBoxLayout(label_container)
+
 
         # TEAM TITLE
         # ==============================================
@@ -232,7 +261,7 @@ class SugarGlidersGS(QMainWindow):
 
         # Plot the data on each plot
         pen_style = pg.mkPen(color='#EC7357', width=5)  # Change color and line width
-        self.plot1.plot(x_data, y_data_alt, pen=pen_style)
+        #self.plot1.plot(x_data, y_data_alt, pen=pen_style)
         self.plot2.plot(x_data, y_data_temp, pen=pen_style)
         self.plot3.plot(x_data, y_data_volt, pen=pen_style)
         self.plot4.plot(x_data, y_data_vel, pen=pen_style)
@@ -266,8 +295,7 @@ class SugarGlidersGS(QMainWindow):
         XBeeport = self.com_dropdown.currentText()
         if XBeeport:
             try:
-                self.serial_connection = serial.Serial(XBeeport, 9600, timeout=1)
-                print("Connected to XBee on " + XBeeport)
+                self.start_serial_stream(port=XBeeport)
             except serial.SerialException as e:
                 print("Failed to connect: " + str(e))
         else:
