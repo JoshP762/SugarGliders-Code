@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt, QTimer, QSize
 import pyqtgraph as pg
 import numpy as np
 from PyQt6 import QtWidgets 
-from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtGui import QIcon, QPixmap, QFont
 import re
 import serial
 from serial.tools import list_ports
@@ -31,7 +31,7 @@ class SugarGlidersGS(QMainWindow):
             self.time_data = []
             self.timer = QTimer()
             self.timer.timeout.connect(self.read_serial_data)
-            self.timer.start(100)  # Poll every 100ms
+            self.timer.start(1000)  # Poll every 100ms
             print("Serial stream started.")
         except Exception as e:
             print(f"Serial error: {e}")
@@ -136,66 +136,86 @@ class SugarGlidersGS(QMainWindow):
 
         # Data
         # ==============================================
+
+        font = QFont("Arial", 15)
         
         self.teamID = QLabel("Team ID")
         label_layout.addWidget(self.teamID)
         self.teamID.setStyleSheet("color : #015482")
+        self.teamID.setFont(font)
         
         self.MissionTime = QLabel("Mission_Time")
         label_layout.addWidget(self.MissionTime)
         self.MissionTime.setStyleSheet("color : #015482")
-        
+        self.MissionTime.setStyleSheet("color : #015482")
+        self.MissionTime.setFont(font)
+
         self.PacketCount = QLabel("Packet_Count")
         label_layout.addWidget(self.PacketCount)
         self.PacketCount.setStyleSheet("color : #015482")
+        self.PacketCount.setFont(font)
         
         self.SWState = QLabel("SW_State")
         label_layout.addWidget(self.SWState)
         self.SWState.setStyleSheet("color : #015482")
+        self.SWState.setFont(font)
 
         self.PLState = QLabel("PL_State")
         label_layout.addWidget(self.PLState)
         self.PLState.setStyleSheet("color : #015482")
+        self.PLState.setFont(font)
         
         self.Altitude = QLabel("Altitude")
         label_layout.addWidget(self.Altitude)
         self.Altitude.setStyleSheet("color : #015482")
+        self.Altitude.setFont(font)
         
         self.Temp = QLabel("Temperture")
         label_layout.addWidget(self.Temp)
         self.Temp.setStyleSheet("color : #015482")
+        self.Temp.setFont(font)
         
         self.Volt = QLabel("Voltage")
         label_layout.addWidget(self.Volt)
         self.Volt.setStyleSheet("color : #015482")
+        self.Volt.setFont(font)
         
         self.GPSLat = QLabel("GPS_Latitude")
         label_layout.addWidget(self.GPSLat)
         self.GPSLat.setStyleSheet("color : #015482")
+        self.GPSLat.setFont(font)
         
         self.GPSLong = QLabel("GPS_Longitude")
         label_layout.addWidget(self.GPSLong)
         self.GPSLong.setStyleSheet("color : #015482")
+        self.GPSLong.setFont(font)
         
         self.GyroR = QLabel("GYRO_R")
         label_layout.addWidget(self.GyroR)
         self.GyroR.setStyleSheet("color : #015482")
+        self.GyroR.setFont(font)
         
         self.GyroP = QLabel("GYRO_P")
         label_layout.addWidget(self.GyroP)
         self.GyroP.setStyleSheet("color : #015482")
+        self.GyroP.setFont(font)
+
         
         self.GyroY = QLabel("GYRO_Y")
         label_layout.addWidget(self.GyroY)
         self.GyroY.setStyleSheet("color : #015482")
-        
+        self.GyroY.setFont(font)
+
         self.Vel = QLabel("Velocity")
         label_layout.addWidget(self.Vel)
         self.Vel.setStyleSheet("color : #015482")
+        self.Vel.setFont(font)
+
         
         self.Acc = QLabel("Acceleration")
         label_layout.addWidget(self.Acc)
         self.Acc.setStyleSheet("color : #015482")
+        self.Acc.setFont(font)
 
 
         logo = QLabel(self)
@@ -250,8 +270,6 @@ class SugarGlidersGS(QMainWindow):
         self.plot3.plot(x_data, y_data_volt, pen=pen_style)
         self.plot4.plot(x_data, y_data_vel, pen=pen_style)
 
-
-
         main_layout.addWidget(graphs)
         self.setCentralWidget(main_widget)
 
@@ -285,13 +303,6 @@ class SugarGlidersGS(QMainWindow):
         else:
             print("No COM port selected.")
 
-
-
-
-#def create_color_label(text):
-   # label=QLabel(text)
- #   label.setStyleSheet("color: black;")
-  #  return label
    
 def manual_release_clicked():
     print('Manual Release Pressed')
