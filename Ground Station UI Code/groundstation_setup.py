@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt, QTimer, QSize
 import pyqtgraph as pg
 import numpy as np
 from PyQt6 import QtWidgets 
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon, QPixmap
 import re
 import serial
 from serial.tools import list_ports
@@ -48,6 +48,7 @@ class SugarGlidersGS(QMainWindow):
                 self.plot1.clear()
                 self.plot1.plot(self.time_data, self.altitude_data, pen='red')
 
+
     # Object Setup
     # ==============================================
 
@@ -62,9 +63,6 @@ class SugarGlidersGS(QMainWindow):
 
         button_container=QWidget()
         button_layout=QVBoxLayout(button_container)
-        button_label=QLabel('BUTTONS')
-        button_label.setStyleSheet("font-size: 20pt; font-weight: bold; color: #015482;")
-        button_layout.addWidget(button_label)
 
         label_container=QWidget()
         label_layout=QVBoxLayout(label_container)
@@ -76,6 +74,7 @@ class SugarGlidersGS(QMainWindow):
         title.setStyleSheet("font-size: 24pt; font-weight: bold; color: #015482;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         leftcol_layout.addWidget(title)
+
 
         # Dropdown COM port
         # ==============================================
@@ -101,65 +100,42 @@ class SugarGlidersGS(QMainWindow):
         
         # Row 1 buttons
         row1=QHBoxLayout()
-        manual_release=QtWidgets.QPushButton('Manual Release')  # Manual Release
-        manual_release.setStyleSheet("color: #015482")
-        manual_release.setMinimumSize(QSize(100,30))
+        manual_release = QtWidgets.QPushButton('Manual Release')  # Manual Release
+        manual_release.setFixedSize(QSize(200,65))
         manual_release.setStyleSheet("color: #015482; background-color: white;")
         manual_release.clicked.connect(manual_release_clicked)
         
         calibration = QtWidgets.QPushButton('Calibration') # Calibration
-        calibration.setStyleSheet("color: #015482")
-        calibration.setMinimumSize(QSize(100,30))
+        calibration.setFixedSize(QSize(200,65))
         calibration.setStyleSheet("color: #015482; background-color: white;")
         calibration.clicked.connect(calibration_clicked)
+       
         row1.addWidget(manual_release)
         row1.addWidget(calibration)
 
         # Row 2 buttons 
         row2 = QHBoxLayout()
         self.LED = QtWidgets.QPushButton('LED OFF')  # LED
-        self.LED.setStyleSheet("color: #015482")
-        self.LED.setMinimumSize(QSize(100, 30))
+        self.LED.setFixedSize(QSize(200,65))
         self.LED.setStyleSheet("color: #015482; background-color: lightgray;")
         self.LED.clicked.connect(self.LED_clicked)
 
         self.buzzer = QtWidgets.QPushButton('Buzzer OFF')  # Buzzer
-        self.buzzer.setMinimumSize(QSize(100, 30))
+        self.buzzer.setFixedSize(QSize(200,65))
         self.buzzer.setStyleSheet("color: #015482; background-color: lightgray;")
         self.buzzer.clicked.connect(self.buzzer_clicked)
         row2.addWidget(self.LED)
         row2.addWidget(self.buzzer)
 
-        # Row 3 buttons 
-        row3 = QHBoxLayout()
-        ping = QtWidgets.QPushButton('Ping')  # Ping
-        ping.setStyleSheet("color: #015482")
-        ping.setMinimumSize(QSize(100,30))
-        ping.setStyleSheet("color: #015482; background-color: white;")
-        ping.clicked.connect(ping_clicked)
-        
-        simulation = QtWidgets.QPushButton('Simulation')  # Simulation
-        simulation.setMinimumSize(QSize(100,30))
-        simulation.setStyleSheet("color: #015482; background-color: white;")
-        simulation.clicked.connect(simulation_clicked)
-        row3.addWidget(ping)
-        row3.addWidget(simulation)
 
         button_layout.addLayout(row1)
         button_layout.addLayout(row2)
-        button_layout.addLayout(row3)
         button_layout.addStretch()
         leftcol_layout.addWidget(button_container)  # Displays buttons
 
-        # Data objects
-
-        data_title=QLabel('DATA')
-        data_title.setStyleSheet("font-size: 20pt; font-weight: bold; color: #015482;")
-        label_layout.addWidget(data_title)
 
         # Data
         # ==============================================
-
         
         self.teamID = QLabel("Team ID")
         label_layout.addWidget(self.teamID)
@@ -204,7 +180,6 @@ class SugarGlidersGS(QMainWindow):
         self.GyroR = QLabel("GYRO_R")
         label_layout.addWidget(self.GyroR)
         self.GyroR.setStyleSheet("color : #015482")
-
         
         self.GyroP = QLabel("GYRO_P")
         label_layout.addWidget(self.GyroP)
@@ -222,10 +197,19 @@ class SugarGlidersGS(QMainWindow):
         label_layout.addWidget(self.Acc)
         self.Acc.setStyleSheet("color : #015482")
 
-        leftcol_layout.addWidget(label_container)
-        leftcol_layout.addStretch() 
 
+        logo = QLabel(self)
+        pixmap = QPixmap(r"C:\Users\cosmo\OneDrive\Documents\GitHub\SugarGliders-Code\Ground Station UI Code\Sugargliderstopicon.jpg")
+        scaled_logo = pixmap.scaled(50,50, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        logo.setPixmap(scaled_logo)
+        logo.setScaledContents(False)
+        label_layout.addWidget(logo)
+    
+        leftcol_layout.addWidget(label_container)
+        leftcol_layout.addWidget(label_container)
+        leftcol_layout.addStretch()
         main_layout.addWidget(leftcol_container)
+
 
         # Graphs (ALL TEST)
         # ==============================================
@@ -317,14 +301,6 @@ def calibration_clicked():
     print('Calibration Pressed')
     #tell pico to tell sensors to shut up and listen
 
-
-def ping_clicked():
-    print('Ping Pressed')
-    #ping
-
-def simulation_clicked():
-    print('Simulation Pressed')
-    #simulate
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
