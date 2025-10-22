@@ -15,38 +15,75 @@ class SugarGlidersGS(QMainWindow):
         super().__init__()
         self.setGeometry(800, 300, 1000, 800)
         self.setWindowTitle('Sugar Gliders Ground Station')
-        self.setWindowIcon(QIcon("Sugargliderstopicon.jpg"))
+        self.setWindowIcon(QIcon("SugarGliders_Logo1.png"))
         self.LED_on=False
         self.buzzer_on=False
+
+        # Read graphs
+        self.altitude_data = []
+        self.altitude_time_data = []
+
+        self.pressure_data = []
+        self.pressure_time_data = []
+
+        self.temp_data=[]
+        self.temp_time_data=[]
 
         self.setup_ui()
 
     # Serial Setup
     # ==============================================
 
-    def start_serial_stream(self, port="COM18", baudrate=9600):
+    def start_serial_stream(self, port="COM3", baudrate=9600):
         try:
             self.serial = serial.Serial(port, baudrate, timeout=1)
-            self.altitude_data = []
-            self.time_data = []
             self.timer = QTimer()
             self.timer.timeout.connect(self.read_serial_data)
-            self.timer.start(1000)  # Poll every 100ms
-            print("Serial stream started.")
+            self.timer.start(100)  # Poll every 100ms
+            print(f"Serial stream started on {port}")
         except Exception as e:
             print(f"Serial error: {e}")
 
     def read_serial_data(self):
         if self.serial.in_waiting:
             line = self.serial.readline().decode('utf-8').strip()
-            match = re.search(r'Approx\. Altitude = ([\d\.]+)', line)
-            if match:
-                altitude = float(match.group(1))
-                self.Altitude.setText(f"Altitude: {altitude:.2f} m")
-                self.altitude_data.append(altitude)
-                self.time_data.append(len(self.altitude_data))  # simple time index
-                self.plot1.clear()
-                self.plot1.plot(self.time_data, self.altitude_data, pen='red')
+            self.read_altitude_data(line)
+            self.read_pressure_data(line)
+            self.read_temperature_data(line)
+
+    # Altitude parser and plotter
+    def read_altitude_data(self, line):
+        match = re.search(r'Approx\. Altitude = ([\d\.]+)', line)
+        if match:
+            altitude = float(match.group(1))
+            self.Altitude.setText(f"Altitude: {altitude:.2f} m")
+            self.altitude_data.append(altitude)
+            self.altitude_time_data.append(len(self.altitude_data))
+            self.plot1.clear()
+            self.plot1.plot(self.altitude_time_data, self.altitude_data, pen='red')
+
+    # Pressure parser and plotter
+    def read_pressure_data(self, line):
+        match = re.search(r'Pressure = ([\d\.]+)', line)
+        if match:
+            pressure = float(match.group(1))
+            self.Pressure.setText(f"Pressure: {pressure:.2f} hPa")
+            self.pressure_data.append(pressure)
+            self.pressure_time_data.append(len(self.pressure_time_data))
+            self.plot5.clear()
+            self.plot5.plot(self.pressure_time_data, self.pressure_data, pen='blue')
+
+    # Temperature parser and plotter
+    def read_temperature_data(self, line):
+        match = re.search(r'Temperature = ([\d\.]+)', line)
+        if match:
+            temperature = float(match.group(1))
+            self.Temp.setText(f"Temperature: {temperature:.2f} C")
+            self.temp_data.append(temperature)
+            self.temp_time_data.append(len(self.temp_time_data))
+            self.plot2.clear()
+            self.plot2.plot(self.temp_time_data, self.temp_data, pen='blue')
+
 
 
     # Object Setup
@@ -71,7 +108,7 @@ class SugarGlidersGS(QMainWindow):
         # TEAM TITLE
         # ==============================================
         title = QLabel('SUGAR GLIDERS')
-        title.setStyleSheet("font-size: 24pt; font-weight: bold; color: #015482;")
+        title.setStyleSheet("font-size: 32pt; font-weight: bold; color: #015482;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         leftcol_layout.addWidget(title)
 
@@ -115,31 +152,39 @@ class SugarGlidersGS(QMainWindow):
 
         # Row 2 buttons 
         row2 = QHBoxLayout()
-        self.LED = QtWidgets.QPushButton('LED OFF')  # LED
-        self.LED.setFixedSize(QSize(200,65))
-        self.LED.setStyleSheet("color: #015482; background-color: lightgray;")
+        self.LED = QtWidgets.QPushButton('LED')  # LED
+        self.LED.setFixedSize(QSize(150,150))
+        self.LED.setStyleSheet("""
+                background-color: white;
+                color: #015482;
+                border-radius: 75px;
+                padding: 5px;
+            """)
         self.LED.clicked.connect(self.LED_clicked)
 
-        self.buzzer = QtWidgets.QPushButton('Buzzer OFF')  # Buzzer
-        self.buzzer.setFixedSize(QSize(200,65))
-        self.buzzer.setStyleSheet("color: #015482; background-color: lightgray;")
+        self.buzzer = QtWidgets.QPushButton('Buzzer')  # Buzzer
+        self.buzzer.setFixedSize(QSize(150,150))
+        self.buzzer.setStyleSheet("""
+                background-color: white;
+                color: #015482;
+                border-radius: 75px;
+                padding: 5px;
+            """)
         self.buzzer.clicked.connect(self.buzzer_clicked)
         row2.addWidget(self.LED)
         row2.addWidget(self.buzzer)
-
 
         button_layout.addLayout(row1)
         button_layout.addLayout(row2)
         button_layout.addStretch()
         leftcol_layout.addWidget(button_container)  # Displays buttons
 
-
         # Data
         # ==============================================
 
-        font = QFont("Arial", 15)
+        font = QFont("Helvetica [Cronyx]", 13)
         
-        self.teamID = QLabel("Team ID")
+        self.teamID = QLabel("Team ID: 2")
         label_layout.addWidget(self.teamID)
         self.teamID.setStyleSheet("color : #015482")
         self.teamID.setFont(font)
@@ -217,9 +262,13 @@ class SugarGlidersGS(QMainWindow):
         self.Acc.setStyleSheet("color : #015482")
         self.Acc.setFont(font)
 
+        self.Pressure = QLabel("Pressure")
+        label_layout.addWidget(self.Pressure)
+        self.Pressure.setStyleSheet("color : #015482")
+        self.Pressure.setFont(font)
 
         logo = QLabel(self)
-        pixmap = QPixmap(r"C:\Users\cosmo\OneDrive\Documents\GitHub\SugarGliders-Code\Ground Station UI Code\Sugargliderstopicon.jpg")
+        pixmap = QPixmap(r"C:\Users\JoshAi\Documents\CANSAT-SG-CODE\SugarGliders-Code\Ground Station UI Code\SugarGliders_Logo1.png")
         scaled_logo = pixmap.scaled(50,50, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         logo.setPixmap(scaled_logo)
         logo.setScaledContents(False)
@@ -256,19 +305,14 @@ class SugarGlidersGS(QMainWindow):
         self.plot4.setLabel('left', 'Velocity (m/s)')
         self.plot4.setLabel('bottom', 'Time (s)')
 
-        x_data = [1, 2, 3, 4, 5]
-        y_data_alt = [10, 20, 15, 25, 30]
-        y_data_temp = [20, 22, 21, 23, 25]
-        y_data_volt = [4.5, 4.2, 4.3, 4.1, 4.0]
-        y_data_vel = [5, 10, 8, 12, 15]
-        y_data_acc = [2, 4, 6, 8, 10]
+        self.plot5 = graphs.addPlot(row=2, col=0, title="Pressure")
+        self.plot5.setLabel('left', 'Pressure (hPa)')
+        self.plot5.setLabel('bottom', 'Time (s)')
 
-        # Plot the data on each plot
-        pen_style = pg.mkPen(color='#EC7357', width=5)  # Change color and line width
-        #self.plot1.plot(x_data, y_data_alt, pen=pen_style)
-        self.plot2.plot(x_data, y_data_temp, pen=pen_style)
-        self.plot3.plot(x_data, y_data_volt, pen=pen_style)
-        self.plot4.plot(x_data, y_data_vel, pen=pen_style)
+        self.plot6 = graphs.addPlot(row=2, col=1, title = "Flight Path")
+        self.plot6.setLabel('left', "Longitude")
+        self.plot6.setLabel("bottom", "Latitude")
+
 
         main_layout.addWidget(graphs)
         self.setCentralWidget(main_widget)
@@ -276,16 +320,35 @@ class SugarGlidersGS(QMainWindow):
     def LED_clicked(self):
         self.LED_on = not self.LED_on
         if self.LED_on:
-            self.LED.setStyleSheet("background-color : red")
+            self.LED.setStyleSheet("""
+                background-color: #EC7357;
+                color: white;
+                border-radius: 75px;
+                padding: 5px;
+            """)
         else:
-            self.LED.setStyleSheet("background-color : lightgray")
-
+            self.LED.setStyleSheet("""
+                background-color: white;
+                color: #015482;
+                border-radius: 75px;
+                padding: 5px;
+            """)
     def buzzer_clicked(self):
         self.buzzer_on = not self.buzzer_on
         if self.buzzer_on:
-            self.buzzer.setStyleSheet("background-color : red")
+            self.buzzer.setStyleSheet("""
+                background-color: #EC7357;
+                color: white;
+                border-radius: 75px;
+                padding: 5px;
+            """)
         else:
-            self.buzzer.setStyleSheet("background-color : lightgray")
+            self.buzzer.setStyleSheet("""
+                background-color: white;
+                color: #015482;
+                border-radius: 75px;
+                padding: 5px;
+            """)
 
     def portrefresh(self):
         ports=list_ports.comports()
