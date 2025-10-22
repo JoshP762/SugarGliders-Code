@@ -22,7 +22,7 @@ Adafruit_BMP3XX bmp;
 SFE_UBLOX_GNSS myGNSS;
 MicroNMEA nmea;
 
-
+/*
 // BNO055 Setup
 double xPos = 0, yPos = 0, headingVel = 0;
 uint16_t BNO055_SAMPLERATE_DELAY_MS = 10; //how often to read data from the board
@@ -38,7 +38,7 @@ double DEG_2_RAD = 0.01745329251; //trig functions require radians, BNO055 outpu
 // Check I2C device address and correct line below (by default address is 0x29 or 0x28)
 //                                   id, address
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
-
+*/
 
 
 void setup() {
@@ -50,6 +50,10 @@ void setup() {
   Wire1.setSDA(I2CSDA);   // For alternate I2C bus
   Wire1.setSCL(I2CSCL);
   Wire1.begin();
+
+  bmp.begin_I2C(0x77, &Wire1);
+  myGNSS.begin(Wire1, 0x42);
+  //bno.begin();
   // If error in startup
 
   if (!bmp.begin_I2C(0x77,&Wire1)) {   // hardware I2C mode, can pass in address & alt Wire
@@ -64,7 +68,7 @@ void setup() {
   bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
   bmp.setOutputDataRate(BMP3_ODR_50_HZ);
 
-  // GPS ZOE CODE
+/*  // GPS ZOE CODE
   // ==============================================================
   Serial.println("SparkFun u-blox Example");
 
@@ -92,17 +96,7 @@ void setup() {
     while (1);
   }
 
-
-  delay(1000);
-
-  //BMP Code
-  // ==============================================================
-  Serial.println("Adafruit BMP388 / BMP390 test");
-
-  Serial.println("Initialization Success!");
-
-  Serial.println("----[START READING]----------------------------");
-
+*/
 }
 
 void loop() {
@@ -124,9 +118,8 @@ void loop() {
   Serial.println(" m");
 
   Serial.println();
-  delay(100);
 
-  myGNSS.checkUblox(); //See if new data is available. Process bytes as they come in.
+  /*myGNSS.checkUblox(); //See if new data is available. Process bytes as they come in.
 
   if (myGNSS.getFixType() > 1 && nmea.isValid())
   {
@@ -144,10 +137,8 @@ void loop() {
   {
     Serial.println("Waiting for GNSS fix or valid data...");
   }
-
-
-  delay(250); //Don't pound too hard on the I2C bus
-
+  */
+  /*
   // BNO055 stuff 
   // ==============================================================
   unsigned long tStart = micros();
@@ -188,9 +179,9 @@ void loop() {
   }
 
   Serial.println("Loop cycle complete.");
-
+  */
 }
-
+/*
 // BNO055 Function
 void printEvent(sensors_event_t* event) {
   Serial.println();
@@ -224,4 +215,4 @@ void printEvent(sensors_event_t* event) {
   Serial.print(" | z= ");
   Serial.println(z);
 }
-
+*/
