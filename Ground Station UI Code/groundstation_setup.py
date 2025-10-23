@@ -38,6 +38,12 @@ class SugarGlidersGS(QMainWindow):
         self.GPS_Latitude_data=[]
         self.GPS_Longitude_data=[]
 
+        self.SW_State_data=[]
+        self.PL_State_data=[]
+
+        self.voltage_data = []
+        self.voltage_time_data = []
+
         self.setup_ui()
 
     # Serial Setup
@@ -64,6 +70,10 @@ class SugarGlidersGS(QMainWindow):
             self.read_GyroP_data(line)
             self.read_GyroY_data(line)
             self.read_GPS_Latitude_data(line)
+            self.read_GPS_Longitude_data(line)
+            self.read_SW_State_data(line)
+            self.read_PL_State_data(line)
+            self.read_voltage_data(line)
 
     # Altitude parser and plotter
     def read_altitude_data(self, line):
@@ -130,7 +140,7 @@ class SugarGlidersGS(QMainWindow):
             self.GyroY.setText(f"GYRO_Y: {Gyro_Y:.2f} ")
             self.GyroY_data.append(Gyro_Y)
     
-    #GPS_Latitude_Longitude
+    #GPS_Latitude_Longitude_Graph
     def read_GPS_Latitude_data(self, line):
         match = re.search(r'Latitude = ([\d\.]+)', line)
         match = re.search(r'Longitude = ([\d\.]+)', line)
@@ -141,6 +151,42 @@ class SugarGlidersGS(QMainWindow):
             self.GPS_Longitude_data.append(len(self.GPS_Longitude_data))
             self.plot6.clear()
             self.plot6.plot(self.GPS_Latitude_data, self.GPS_Longitude_data, pen='blue')
+
+    #GPS_Longitude_Data
+    def read_GPS_Longitude_data(self, line):
+        match = re.search(r'Longitude = ([\d\.]+)', line)
+        if match:
+            GPS_Longitude = float(match.group(1))
+            self.GPSLong.setText(f"Longitude: {GPS_Longitude:.2f}")
+            self.GPS_Longitude_data.append(GPS_Longitude)
+
+    #SW_State_Data
+    def read_SW_State_data(self, line):
+        match = re.search(r'SW_State = ([\d\.]+)', line)
+        if match:
+            SW_State = float(match.group(1))
+            self.SWState.setText(f"SW_State: {SW_State:.2f}")
+            self.SW_State_data.append(SW_State)
+    
+    #PL_State_Data
+    def read_PL_State_data(self, line):
+        match = re.search(r'PL_State = ([\d\.]+)', line)
+        if match:
+            PL_State = float(match.group(1))
+            self.PLState.setText(f"PL_State: {PL_State:.2f}")
+            self.PL_State_data.append(PL_State)
+
+    #voltage_data
+    def read_voltage_data(self, line):
+        match = re.search(r'Voltage = ([\d\.]+)', line)
+        if match:
+            voltage = float(match.group(1))
+            self.Volt.setText(f"Voltage: {voltage:.2f} V")
+            self.voltage_data.append(voltage)
+            self.voltage_time_data.append(len(self.voltage_time_data))
+            self.plot3.clear()
+            self.plot3.plot(self.voltage_time_data, self.voltage_data, pen='green')
+
 
 
     # Object Setup
