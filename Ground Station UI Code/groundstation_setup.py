@@ -29,6 +29,15 @@ class SugarGlidersGS(QMainWindow):
         self.temp_data=[]
         self.temp_time_data=[]
 
+        self.GyroR_data =[]
+        self.GyroP_data =[]
+        self.GyroY_data =[]
+
+        self.packet_count=[]
+
+        self.GPS_Latitude_data=[]
+        self.GPS_Longitude_data=[]
+
         self.setup_ui()
 
     # Serial Setup
@@ -39,7 +48,7 @@ class SugarGlidersGS(QMainWindow):
             self.serial = serial.Serial(port, baudrate, timeout=1)
             self.timer = QTimer()
             self.timer.timeout.connect(self.read_serial_data)
-            self.timer.start(100)  # Poll every 100ms
+            self.timer.start(10)  # Poll every 10ms
             print(f"Serial stream started on {port}")
         except Exception as e:
             print(f"Serial error: {e}")
@@ -50,10 +59,15 @@ class SugarGlidersGS(QMainWindow):
             self.read_altitude_data(line)
             self.read_pressure_data(line)
             self.read_temperature_data(line)
+            self.read_packet_data(line)
+            self.read_GyroR_data(line)
+            self.read_GyroP_data(line)
+            self.read_GyroY_data(line)
+            self.read_GPS_Latitude_data(line)
 
     # Altitude parser and plotter
     def read_altitude_data(self, line):
-        match = re.search(r'Approx\. Altitude = ([\d\.]+)', line)
+        match = re.search(r'Altitude = ([\d\.]+)', line)
         if match:
             altitude = float(match.group(1))
             self.Altitude.setText(f"Altitude: {altitude:.2f} m")
@@ -78,12 +92,55 @@ class SugarGlidersGS(QMainWindow):
         match = re.search(r'Temperature = ([\d\.]+)', line)
         if match:
             temperature = float(match.group(1))
-            self.Temp.setText(f"Temperature: {temperature:.2f} C")
+            self.Temp.setText(f"Temperature: {temperature:.2f} °C")
             self.temp_data.append(temperature)
             self.temp_time_data.append(len(self.temp_time_data))
             self.plot2.clear()
             self.plot2.plot(self.temp_time_data, self.temp_data, pen='blue')
 
+    # Packet parser and plotter
+    def read_packet_data(self, line):
+        match = re.search(r'Packet_Count = ([\d\.]+)', line)
+        if match:
+            packet = float(match.group(1))
+            self.PacketCount.setText(f"Packet_Count: {packet:.2f} ")
+            self.packet_count.append(packet)
+
+    # Gyro-R parser 
+    def read_GyroR_data(self, line):
+        match = re.search(r'GYRO_R = ([\d\.]+)', line)
+        if match:
+            Gyro_R = float(match.group(1))
+            self.GyroR.setText(f"GYRO_R: {Gyro_R:.2f}")
+            self.GyroR_data.append(Gyro_R)
+
+    # Gyro-P parser 
+    def read_GyroP_data(self, line):
+        match = re.search(r'GYRO_P = ([\d\.]+)', line)
+        if match:
+            Gyro_P = float(match.group(1))
+            self.GyroP.setText(f"GYRO_P: {Gyro_P:.2f} ")
+            self.GyroP_data.append(Gyro_P)
+   
+    # Gyro-Y parser 
+    def read_GyroY_data(self, line):
+        match = re.search(r'GYRO_Y = ([\d\.]+)', line)
+        if match:
+            Gyro_Y = float(match.group(1))
+            self.GyroY.setText(f"GYRO_Y: {Gyro_Y:.2f} ")
+            self.GyroY_data.append(Gyro_Y)
+    
+    #GPS_Latitude_Longitude
+    def read_GPS_Latitude_data(self, line):
+        match = re.search(r'Latitude = ([\d\.]+)', line)
+        match = re.search(r'Longitude = ([\d\.]+)', line)
+        if match:
+            GPS_Latitude = float(match.group(1))
+            self.GPSLat.setText(f"Latitude: {GPS_Latitude:.2f}")
+            self.GPS_Latitude_data.append(GPS_Latitude)
+            self.GPS_Longitude_data.append(len(self.GPS_Longitude_data))
+            self.plot6.clear()
+            self.plot6.plot(self.GPS_Latitude_data, self.GPS_Longitude_data, pen='blue')
 
 
     # Object Setup
@@ -184,14 +241,13 @@ class SugarGlidersGS(QMainWindow):
 
         font = QFont("Helvetica [Cronyx]", 13)
         
-        self.teamID = QLabel("Team ID: 2")
+        self.teamID = QLabel("Team_ID: 2")
         label_layout.addWidget(self.teamID)
-        self.teamID.setStyleSheet("color : #015482")
+        self.teamID.setStyleSheet("color : #015482;")
         self.teamID.setFont(font)
         
         self.MissionTime = QLabel("Mission_Time")
         label_layout.addWidget(self.MissionTime)
-        self.MissionTime.setStyleSheet("color : #015482")
         self.MissionTime.setStyleSheet("color : #015482")
         self.MissionTime.setFont(font)
 
