@@ -44,6 +44,9 @@ class SugarGlidersGS(QMainWindow):
         self.voltage_data = []
         self.voltage_time_data = []
 
+        self.Acceleration_data = []
+        self.Acceleration_time_data = []
+
         self.setup_ui()
 
     # Serial Setup
@@ -74,6 +77,7 @@ class SugarGlidersGS(QMainWindow):
             self.read_SW_State_data(line)
             self.read_PL_State_data(line)
             self.read_voltage_data(line)
+            self.read_acceleration_data(line)
 
     # Altitude parser and plotter
     def read_altitude_data(self, line):
@@ -186,6 +190,17 @@ class SugarGlidersGS(QMainWindow):
             self.voltage_time_data.append(len(self.voltage_time_data))
             self.plot3.clear()
             self.plot3.plot(self.voltage_time_data, self.voltage_data, pen='green')
+
+    #Acceleration_data
+    def read_acceleration_data(self, line):
+        match = re.search(r'Acceleration = ([\d\.]+)', line)
+        if match:
+            acceleration = float(match.group(1))
+            self.Acc.setText(f"Acceleration: {acceleration:.2f} m/s²")
+            self.Acceleration_data.append(acceleration)
+            self.Acceleration_time_data.append(len(self.Acceleration_time_data))
+            self.plot4.clear()
+            self.plot4.plot(self.Acceleration_time_data, self.Acceleration_data, pen='orange')
 
 
 
@@ -403,8 +418,8 @@ class SugarGlidersGS(QMainWindow):
         self.plot3.setLabel('left', 'Voltage (V)')
         self.plot3.setLabel('bottom', 'Time (s)')
 
-        self.plot4 = graphs.addPlot(row=1, col=1, title="Speed")
-        self.plot4.setLabel('left', 'Velocity (m/s)')
+        self.plot4 = graphs.addPlot(row=1, col=1, title="Acceleration")
+        self.plot4.setLabel('left', 'Acceleration (m/s²)')
         self.plot4.setLabel('bottom', 'Time (s)')
 
         self.plot5 = graphs.addPlot(row=2, col=0, title="Pressure")
