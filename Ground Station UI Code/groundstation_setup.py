@@ -370,19 +370,12 @@ class SugarGlidersGS(QMainWindow):
         label_layout.addWidget(self.GyroP)
         self.GyroP.setStyleSheet("color : #015482")
         self.GyroP.setFont(font)
-
         
         self.GyroY = QLabel("GYRO_Y")
         label_layout.addWidget(self.GyroY)
         self.GyroY.setStyleSheet("color : #015482")
         self.GyroY.setFont(font)
 
-        self.Vel = QLabel("Velocity")
-        label_layout.addWidget(self.Vel)
-        self.Vel.setStyleSheet("color : #015482")
-        self.Vel.setFont(font)
-
-        
         self.Acc = QLabel("Acceleration")
         label_layout.addWidget(self.Acc)
         self.Acc.setStyleSheet("color : #015482")
