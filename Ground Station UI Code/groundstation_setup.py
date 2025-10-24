@@ -47,6 +47,8 @@ class SugarGlidersGS(QMainWindow):
         self.Acceleration_data = []
         self.Acceleration_time_data = []
 
+        self.time_data = []
+
         self.setup_ui()
 
     # Serial Setup
@@ -78,6 +80,7 @@ class SugarGlidersGS(QMainWindow):
             self.read_PL_State_data(line)
             self.read_voltage_data(line)
             self.read_acceleration_data(line)
+            self.read_time_data(line)
 
     # Altitude parser and plotter
     def read_altitude_data(self, line):
@@ -202,7 +205,12 @@ class SugarGlidersGS(QMainWindow):
             self.plot4.clear()
             self.plot4.plot(self.Acceleration_time_data, self.Acceleration_data, pen='orange')
 
-
+    #time_data
+    def read_time_data(self, line):
+        match = re.search(r'Time = ([\d\.]+)', line)
+        if match:
+            time = float(match.group(1))
+            self.time_data.append(time)
 
     # Object Setup
     # ==============================================
