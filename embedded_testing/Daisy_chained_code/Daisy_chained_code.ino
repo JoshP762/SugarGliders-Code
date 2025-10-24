@@ -9,7 +9,9 @@
 const int I2CSDA = 16;
 const int I2CSCL = 17;
 
-#define MOSFET_GATE_PIN 27 // Example: Connect MOSFET gate to GP1
+const int voltagePin = 26; // GP26 = ADC0
+
+#define MOSFET_GATE_PIN 27 // Example: Connect MOSFET gate to GP1  For Servo
 #define SERVO_SIGNAL_PIN 20 // Example: Connect servo signal to GP0
 
 bool servoDeployed = false;
@@ -58,15 +60,6 @@ void setup() {
   bmp.setOutputDataRate(BMP3_ODR_50_HZ);
 
 
-  if (bmp.readAltitude(1013.25) > 110) {
-    // Servo
-    digitalWrite(MOSFET_GATE_PIN, HIGH);
-
-    myservo.write(0);        
-
-    digitalWrite(MOSFET_GATE_PIN, LOW);
-  }
-
   
   // ZOE-M8Q
   if (!gps.begin()) {
@@ -111,6 +104,18 @@ void loop() {
   Serial.println(accel.acceleration.z);
 
 
+  // Voltage
+  int raw = analogRead(voltagePin); // 0–4095 for 12-bit ADC
+  float voltage = (raw * (3.3 / 1023.0))*5; // Convert to volts
+  float battery=voltage/2.0;
+
+
+  Serial.print("Voltage = ");
+  Serial.println(voltage, 2); // Print with 2 decimal places
+
+  delay(250);
+
+
   // BMP388 Pressure & Altitude
   if (bmp.performReading()) {
     float altitude = bmp.readAltitude(1013.25);
@@ -121,7 +126,10 @@ void loop() {
     Serial.print("Temperature = "); Serial.print(bmp.temperature);
     Serial.println(" *C");
 
-   if (altitude > 110 && !servoDeployed) {
+  // Servo
+
+  // Release (0 Degrees)
+   if (altitude > 110 && !servoDeployed) {  // Should be 520 m
     Serial.println("SW_State = 2");
     digitalWrite(MOSFET_GATE_PIN, HIGH);
     myservo.write(0);
@@ -130,6 +138,32 @@ void loop() {
     servoDeployed = true;
   }
 }
+  // Lock (180 Degrees)
+  if(Serial.available()){
+    String command = Serial.readStringUntil('\n');
+    command.trim(); // Remove whitespace
+    if (command == "SERVO_LOCK") {
+      digitalWrite(MOSFET_GATE_PIN, HIGH); // Power the servo
+      myservo.write(180);                  // Move to locked position
+      Serial.println("SERVO_LOCK");
+      delay(500);                          // Hold position
+      digitalWrite(MOSFET_GATE_PIN, LOW);  // Cut power
+    }
+
+  // Release (0 Degrees)
+    else if (command == "SERVO_RELEASE") {
+      digitalWrite(MOSFET_GATE_PIN, HIGH); // Power the servo
+      myservo.write(0);                  // Move to locked position
+      Serial.println("SERVO_RELEASE");
+      delay(500);                          // Hold position
+      digitalWrite(MOSFET_GATE_PIN, LOW);  // Cut power
+    }
+}
+
+// States
+
+
+
 
 if (servoActive && millis() - servoStartTime > 500) {
   digitalWrite(MOSFET_GATE_PIN, LOW);

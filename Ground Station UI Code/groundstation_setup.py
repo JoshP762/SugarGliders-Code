@@ -18,7 +18,6 @@ class SugarGlidersGS(QMainWindow):
         self.setWindowIcon(QIcon("SugarGliders_Logo1.png"))
         self.LED_on=False
         self.buzzer_on=False
-        self.arduino = serial.Serial('COM18', 9600)
 
 
         # Read graphs
@@ -123,8 +122,8 @@ class SugarGlidersGS(QMainWindow):
     def read_packet_data(self, line):
         match = re.search(r'Packet_Count = ([\d\.]+)', line)
         if match:
-            packet = float(match.group(1))
-            self.PacketCount.setText(f"Packet_Count: {packet:.2f} ")
+            packet = int(match.group(1))
+            self.PacketCount.setText(f"Packet_Count: {packet:} ")
             self.packet_count.append(packet)
 
     # Gyro-R parser 
@@ -201,10 +200,10 @@ class SugarGlidersGS(QMainWindow):
 
     #Acceleration_data
     def read_acceleration_data(self, line):
-        match = re.search(r'Acceleration = ([\d\.]+)', line)
+        match = re.search(r'Accel = (-?[\d\.]+)', line)
         if match:
             acceleration = float(match.group(1))
-            self.Acc.setText(f"Acceleration: {acceleration:.2f} m/s²")
+            self.Acc.setText(f"Acceleration = {acceleration:.2f} m/s²")
             self.Acceleration_data.append(acceleration)
             self.Acceleration_time_data.append(len(self.Acceleration_time_data))
             self.plot4.clear()
@@ -272,15 +271,15 @@ class SugarGlidersGS(QMainWindow):
         manual_release = QtWidgets.QPushButton('Manual Release')  # Manual Release
         manual_release.setFixedSize(QSize(200,65))
         manual_release.setStyleSheet("color: #015482; background-color: white;")
-        manual_release.clicked.connect(manual_release_clicked)
+        manual_release.clicked.connect(self.manual_release_clicked)
         
-        calibration = QtWidgets.QPushButton('Calibration') # Calibration
-        calibration.setFixedSize(QSize(200,65))
-        calibration.setStyleSheet("color: #015482; background-color: white;")
-        calibration.clicked.connect(calibration_clicked)
+        ServoRelase = QtWidgets.QPushButton('Servo Lock') # Servo Lock
+        ServoRelase.setFixedSize(QSize(200,65))
+        ServoRelase.setStyleSheet("color: #015482; background-color: white;")
+        ServoRelase.clicked.connect(self.ServoLocked_clicked)
        
         row1.addWidget(manual_release)
-        row1.addWidget(calibration)
+        row1.addWidget(ServoRelase)
 
         # Row 2 buttons 
         row2 = QHBoxLayout()
@@ -441,6 +440,12 @@ class SugarGlidersGS(QMainWindow):
         main_layout.addWidget(graphs)
         self.setCentralWidget(main_widget)
 
+    def manual_release_clicked(self):
+        self.serial.write(b'SERVO_RELEASE\n')
+
+    def ServoLocked_clicked(self):
+        self.serial.write(b'SERVO_LOCK\n')
+
     def LED_clicked(self):
         self.LED_on = not self.LED_on
         if self.LED_on:
@@ -490,14 +495,11 @@ class SugarGlidersGS(QMainWindow):
         else:
             print("No COM port selected.")
 
-   
-def manual_release_clicked():
-    print('Manual Release Pressed')
-    #release payload here
 
-def calibration_clicked():
-    print('Calibration Pressed')
-    #tell pico to tell sensors to shut up and listen
+    
+
+
+    
 
 
 if __name__ == "__main__":
