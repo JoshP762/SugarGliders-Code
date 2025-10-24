@@ -9,6 +9,14 @@
 const int I2CSDA = 16;
 const int I2CSCL = 17;
 
+#define MOSFET_GATE_PIN 27 // Example: Connect MOSFET gate to GP1
+#define SERVO_SIGNAL_PIN 20 // Example: Connect servo signal to GP0
+
+bool servoDeployed = false;
+unsigned long servoStartTime = 0;
+bool servoActive = false;
+Servo myservo;
+
 /*
 #define MOSFET_GATE_PIN 21 // Example: Connect MOSFET gate to GP1
 #define SERVO_SIGNAL_PIN 20 // Example: Connect servo signal to GP0
@@ -25,6 +33,11 @@ void setup() {
   Wire.setSDA(I2CSDA);
   Wire.setSCL(I2CSCL);
   Wire.begin();
+
+  pinMode(MOSFET_GATE_PIN, OUTPUT); // Set MOSFET control pin as output
+  digitalWrite(MOSFET_GATE_PIN, LOW); // Ensure MOSFET is initially off
+  myservo.attach(SERVO_SIGNAL_PIN);   // Attach servo signal
+
 
   Serial.println("Initializing sensors...");
 
@@ -44,11 +57,16 @@ void setup() {
   bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);
   bmp.setOutputDataRate(BMP3_ODR_50_HZ);
 
-  /*
-  if (bmp.readAltitude(1013.25) > 300) {
-  // trigger servo or MOSFET
+
+  if (bmp.readAltitude(1013.25) > 110) {
+    // Servo
+    digitalWrite(MOSFET_GATE_PIN, HIGH);
+
+    myservo.write(0);        
+
+    digitalWrite(MOSFET_GATE_PIN, LOW);
   }
-  */
+
   
   // ZOE-M8Q
   if (!gps.begin()) {
@@ -89,22 +107,34 @@ void loop() {
   Serial.print("GYRO_Y = ");
   Serial.println(gyro.gyro.z);
 
-  Serial.print("Accel: ");
-  Serial.print(accel.acceleration.x); Serial.print(", ");
-  Serial.print(accel.acceleration.y); Serial.print(", ");
+  Serial.print("Accel = ");
   Serial.println(accel.acceleration.z);
 
 
   // BMP388 Pressure & Altitude
   if (bmp.performReading()) {
+    float altitude = bmp.readAltitude(1013.25);
     Serial.print("Pressure = ");
     Serial.print(bmp.pressure / 100.0); Serial.print(" hPa\t");
     Serial.print("\nAltitude = ");
     Serial.print(bmp.readAltitude(1013.25)); Serial.println(" m");
     Serial.print("Temperature = "); Serial.print(bmp.temperature);
     Serial.println(" *C");
-    
+
+   if (altitude > 110 && !servoDeployed) {
+    Serial.println("SW_State = 2");
+    digitalWrite(MOSFET_GATE_PIN, HIGH);
+    myservo.write(0);
+    servoStartTime = millis();
+    servoActive = true;
+    servoDeployed = true;
   }
+}
+
+if (servoActive && millis() - servoStartTime > 500) {
+  digitalWrite(MOSFET_GATE_PIN, LOW);
+  servoActive = false;
+}
 
   // ZOE-M8Q GPS
   gps.checkUblox(); // Process incoming GPS data
