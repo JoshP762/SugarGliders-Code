@@ -439,38 +439,55 @@ class SugarGlidersGS(QMainWindow):
         main_layout.addWidget(graphs)
         self.setCentralWidget(main_widget)
 
-    def LED_clicked(self):
-        self.LED_on = not self.LED_on
-        if self.LED_on:
-            self.LED.setStyleSheet("""
-                background-color: #EC7357;
-                color: white;
-                border-radius: 75px;
-                padding: 5px;
-            """)
-        else:
-            self.LED.setStyleSheet("""
-                background-color: white;
-                color: #015482;
-                border-radius: 75px;
-                padding: 5px;
-            """)
-    def buzzer_clicked(self):
-        self.buzzer_on = not self.buzzer_on
-        if self.buzzer_on:
-            self.buzzer.setStyleSheet("""
-                background-color: #EC7357;
-                color: white;
-                border-radius: 75px;
-                padding: 5px;
-            """)
-        else:
-            self.buzzer.setStyleSheet("""
-                background-color: white;
-                color: #015482;
-                border-radius: 75px;
-                padding: 5px;
-            """)
+def send_command(self, command: str):
+    if self.arduino and self.arduino.is_open:
+        try:
+            self.arduino.write(f"{command}\n".encode())
+            print(f"Sent command: {command}")
+        except Exception as e:
+            print(f"Serial write failed: {e}")
+    else:
+        print(f"Failed to send '{command}': Serial not open.")
+
+def LED_clicked(self):
+    self.LED_on = not self.LED_on
+    if self.LED_on:
+        self.LED.setStyleSheet("""
+            background-color: #EC7357;
+            color: white;
+            border-radius: 75px;
+            padding: 5px;
+        """)
+        self.send_command('1')  # LED ON
+        print("LED toggled: ON")
+    else:
+        self.LED.setStyleSheet("""
+            background-color: white;
+            color: #015482;
+            border-radius: 75px;
+            padding: 5px;
+        """)
+        self.send_command('0')  # LED OFF
+
+def buzzer_clicked(self):
+    self.buzzer_on = not self.buzzer_on
+    if self.buzzer_on:
+        self.buzzer.setStyleSheet("""
+            background-color: #EC7357;
+            color: white;
+            border-radius: 75px;
+            padding: 5px;
+        """)
+        self.send_command('3')  # Buzzer ON
+    else:
+        self.buzzer.setStyleSheet("""
+            background-color: white;
+            color: #015482;
+            border-radius: 75px;
+            padding: 5px;
+        """)
+        self.send_command('4')  # Buzzer OFF
+        print("Buzzer toggled: OFF")
 
     def portrefresh(self):
         ports=list_ports.comports()
