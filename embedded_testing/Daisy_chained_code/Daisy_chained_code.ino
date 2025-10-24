@@ -90,8 +90,6 @@ void loop() {
   Serial.println(gyro.gyro.z);
 
   Serial.print("Accel: ");
-  Serial.print(accel.acceleration.x); Serial.print(", ");
-  Serial.print(accel.acceleration.y); Serial.print(", ");
   Serial.println(accel.acceleration.z);
 
 
