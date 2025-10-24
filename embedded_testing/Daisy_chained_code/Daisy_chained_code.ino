@@ -10,7 +10,7 @@ const int I2CSDA = 16;
 const int I2CSCL = 17;
 
 /*
-#define MOSFET_GATE_PIN 27 // Example: Connect MOSFET gate to GP1
+#define MOSFET_GATE_PIN 21 // Example: Connect MOSFET gate to GP1
 #define SERVO_SIGNAL_PIN 20 // Example: Connect servo signal to GP0
 Servo myservo; // Create a servo object
 */

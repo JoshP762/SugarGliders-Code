@@ -38,6 +38,8 @@ class SugarGlidersGS(QMainWindow):
         self.GPS_Latitude_data=[]
         self.GPS_Longitude_data=[]
 
+        self.latitude_data=[]
+
         self.SW_State_data=[]
         self.PL_State_data=[]
 
@@ -146,26 +148,27 @@ class SugarGlidersGS(QMainWindow):
             Gyro_Y = float(match.group(1))
             self.GyroY.setText(f"GYRO_Y: {Gyro_Y:.2f} ")
             self.GyroY_data.append(Gyro_Y)
-    
-    #GPS_Latitude_Longitude_Graph
-    def read_GPS_Latitude_data(self, line):
-        match = re.search(r'Latitude = ([\d\.]+)', line)
-        match = re.search(r'Longitude = ([\d\.]+)', line)
-        if match:
-            GPS_Latitude = float(match.group(1))
-            self.GPSLat.setText(f"Latitude: {GPS_Latitude:.2f}")
-            self.GPS_Latitude_data.append(GPS_Latitude)
-            self.GPS_Longitude_data.append(len(self.GPS_Longitude_data))
-            self.plot6.clear()
-            self.plot6.plot(self.GPS_Latitude_data, self.GPS_Longitude_data, pen='blue')
 
-    #GPS_Longitude_Data
+    
+    def read_GPS_Latitude_data(self, line):
+        lat_match = re.search(r'Latitude = (-?[\d\.]+)', line)
+        if lat_match:
+            GPS_Latitude = float(lat_match.group(1))
+            self.GPSLat.setText(f"Latitude: {GPS_Latitude:.4f}")
+            self.GPS_Latitude_data.append(GPS_Latitude)
+
     def read_GPS_Longitude_data(self, line):
-        match = re.search(r'Longitude = ([\d\.]+)', line)
-        if match:
-            GPS_Longitude = float(match.group(1))
-            self.GPSLong.setText(f"Longitude: {GPS_Longitude:.2f}")
+        lon_match = re.search(r'Longitude = (-?[\d\.]+)', line)
+        if lon_match:
+            GPS_Longitude = float(lon_match.group(1))
+            self.GPSLong.setText(f"Longitude: {GPS_Longitude:.4f}")
             self.GPS_Longitude_data.append(GPS_Longitude)
+
+            # Plot only when both lat and lon are available
+            if len(self.GPS_Latitude_data) == len(self.GPS_Longitude_data):
+                self.plot6.clear()
+                self.plot6.plot(self.GPS_Longitude_data, self.GPS_Latitude_data, pen='blue')
+
 
     #SW_State_Data
     def read_SW_State_data(self, line):
