@@ -4,6 +4,8 @@
 #include <Adafruit_BMP3XX.h>
 #include <SparkFun_Ublox_Arduino_Library.h>
 #include <Servo.h>
+#include <XBee.h>
+#include <SoftwareSerial.h>
 
 // I2C Pins for Pico (GP16 = SDA, GP17 = SCL)
 const int I2CSDA = 16;
@@ -36,6 +38,11 @@ void setup() {
   Wire.setSCL(I2CSCL);
   Wire.begin();
 
+  Serial1.setTX(12);
+  Serial1.setTX(13);
+  Serial1.begin(9600);
+
+
   pinMode(MOSFET_GATE_PIN, OUTPUT); // Set MOSFET control pin as output
   digitalWrite(MOSFET_GATE_PIN, LOW); // Ensure MOSFET is initially off
   myservo.attach(SERVO_SIGNAL_PIN);   // Attach servo signal
@@ -59,7 +66,23 @@ void setup() {
   bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);
   bmp.setOutputDataRate(BMP3_ODR_50_HZ);
 
+  //openlog_setup
+  openLog.begin(9600);      // OpenLog default baud rate
 
+  
+
+  // Send data to OpenLog
+  openLog.println("Run OpenLog UART Test");
+  openLog.println("This is recorded to the default log file");
+
+  // Create a new file (OpenLog automatically creates new files if you send 'new' command)
+  openLog.println("new NewFile.txt");
+  delay(100); // Give OpenLog time to process
+
+  openLog.println("This is written to NewFile.txt");
+  openLog.println("Use appendFile for more control");
+
+  
   
   // ZOE-M8Q
   if (!gps.begin()) {
@@ -86,6 +109,11 @@ void loop() {
   bno.getEvent(&accel, Adafruit_BNO055::VECTOR_ACCELEROMETER);
   bno.getEvent(&gravity, Adafruit_BNO055::VECTOR_GRAVITY);
 
+  digitalWrite(ledPin, HIGH);
+  delay(1000);
+  digitalWrite(ledPin, LOW);
+  delay(1000);
+
   Serial.print("Orient: ");
   Serial.print(orientation.orientation.x); Serial.print(", ");
   Serial.print(orientation.orientation.y); Serial.print(", ");
@@ -103,6 +131,7 @@ void loop() {
   Serial.print("Accel = ");
   Serial.println(accel.acceleration.z);
 
+  
 
   // Voltage
   int raw = analogRead(voltagePin); // 0–4095 for 12-bit ADC
