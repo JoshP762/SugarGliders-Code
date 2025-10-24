@@ -5,23 +5,47 @@
 #include <SparkFun_Ublox_Arduino_Library.h>
 #include <Servo.h>
 
-#define MOSFET_GATE_PIN 21 // Example: Connect MOSFET gate to GP1
+#define LED_GATE_PIN 21 // Example: Connect MOSFET gate to GP1
 #define SERVO_SIGNAL_PIN 20 // Example: Connect servo signal to GP0
 
+#define BUZZER_GATE_PIN 22 // Example: Connect MOSFET gate to GP1
+#define SERVO_SIGNAL_PIN 20 // Example: Connect servo signal to GP0
+
+
 void setup() {
-  pinMode(MOSFET_GATE_PIN, OUTPUT); // Set MOSFET control pin as output
-  digitalWrite(MOSFET_GATE_PIN, LOW); // Ensure MOSFET is initially off
+  Serial.begin(9600);
+  pinMode(LED_GATE_PIN, OUTPUT); // Set MOSFET control pin as output
+  digitalWrite(LED_GATE_PIN, LOW); // Ensure MOSFET is initially off
+
+  pinMode(BUZZER_GATE_PIN, OUTPUT); // Set MOSFET control pin as output
+  digitalWrite(BUZZER_GATE_PIN, LOW); // Ensure MOSFET is initially off
 }
 
 void loop() {
+if (Serial.available()) {
+    String command = Serial.readStringUntil('\n');
+    command.trim(); // Remove whitespace
 
-// Turn on the MOSFET to power the servo
-  digitalWrite(MOSFET_GATE_PIN, HIGH);
-  delay(100); // Allow time for power to stabilize
+    if (command == "1") {
+      digitalWrite(LED_GATE_PIN, HIGH);
+      Serial.println("1");
+    } else if (command == "0") {
+      digitalWrite(LED_GATE_PIN, LOW);
+      Serial.println("0");
+    }
+  }
 
-  // Turn off the MOSFET to cut power to the servo
-  digitalWrite(MOSFET_GATE_PIN, LOW);
-  delay(1000); // Keep servo off for a duration
+if (Serial.available()) {
+    String commandbuzz = Serial.readStringUntil('\n');
+    commandbuzz.trim(); // Remove whitespace
 
-
+    if (commandbuzz == "3") {
+      digitalWrite(BUZZER_GATE_PIN, HIGH);
+      Serial.println("3");
+    } else if (commandbuzz == "4") {
+      digitalWrite(BUZZER_GATE_PIN, LOW);
+      Serial.println("4");
+    }
+  }
 }
+
