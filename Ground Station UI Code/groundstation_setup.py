@@ -210,6 +210,7 @@ class SugarGlidersGS(QMainWindow):
         match = re.search(r'Time = ([\d\.]+)', line)
         if match:
             time = float(match.group(1))
+            self.MissionTime.setText(f"Mission_Time: {time:.2f} s")
             self.time_data.append(time)
 
     # Object Setup
