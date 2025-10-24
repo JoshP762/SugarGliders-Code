@@ -18,6 +18,8 @@ class SugarGlidersGS(QMainWindow):
         self.setWindowIcon(QIcon("SugarGliders_Logo1.png"))
         self.LED_on=False
         self.buzzer_on=False
+        self.arduino = serial.Serial('COM18', 9600)
+
 
         # Read graphs
         self.altitude_data = []
@@ -448,6 +450,7 @@ class SugarGlidersGS(QMainWindow):
                 border-radius: 75px;
                 padding: 5px;
             """)
+            self.arduino.write(b'1\n')
         else:
             self.LED.setStyleSheet("""
                 background-color: white;
@@ -455,6 +458,7 @@ class SugarGlidersGS(QMainWindow):
                 border-radius: 75px;
                 padding: 5px;
             """)
+            self.arduino.write(b'0\n')
     def buzzer_clicked(self):
         self.buzzer_on = not self.buzzer_on
         if self.buzzer_on:
@@ -464,6 +468,7 @@ class SugarGlidersGS(QMainWindow):
                 border-radius: 75px;
                 padding: 5px;
             """)
+            self.arduino.write(b'3\n')
         else:
             self.buzzer.setStyleSheet("""
                 background-color: white;
@@ -471,6 +476,7 @@ class SugarGlidersGS(QMainWindow):
                 border-radius: 75px;
                 padding: 5px;
             """)
+            self.arduino.write(b'4\n')
 
     def portrefresh(self):
         ports=list_ports.comports()
