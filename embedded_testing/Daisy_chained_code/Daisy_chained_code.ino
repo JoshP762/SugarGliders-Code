@@ -16,6 +16,10 @@ const int voltagePin = 26; // GP26 = ADC0
 #define MOSFET_GATE_PIN 27 // Example: Connect MOSFET gate to GP1  For Servo
 #define SERVO_SIGNAL_PIN 20 // Example: Connect servo signal to GP0
 
+SoftwareSerial openLog(1,0);
+
+int ledPin=LED_BUILTIN;
+
 bool servoDeployed = false;
 unsigned long servoStartTime = 0;
 bool servoActive = false;
@@ -67,10 +71,9 @@ void setup() {
   bmp.setOutputDataRate(BMP3_ODR_50_HZ);
 
   //openlog_setup
+  pinMode(ledPin,OUTPUT);
   openLog.begin(9600);      // OpenLog default baud rate
-
   
-
   // Send data to OpenLog
   openLog.println("Run OpenLog UART Test");
   openLog.println("This is recorded to the default log file");
@@ -109,6 +112,7 @@ void loop() {
   bno.getEvent(&accel, Adafruit_BNO055::VECTOR_ACCELEROMETER);
   bno.getEvent(&gravity, Adafruit_BNO055::VECTOR_GRAVITY);
 
+  //Open Log LED
   digitalWrite(ledPin, HIGH);
   delay(1000);
   digitalWrite(ledPin, LOW);
@@ -190,7 +194,7 @@ void loop() {
 }
 
 // States
-
+  
 
 
 
