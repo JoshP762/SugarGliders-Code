@@ -184,7 +184,7 @@ class SugarGlidersGS(QMainWindow):
         match = re.search(r'PL_STATE = (\w+)', line)
         if match:
             PL_State = float(match.group(1))
-            self.PLState.setText(f"PL_State: {PL_State:.2f}")
+            self.PLState.setText(f"PL_State: {PL_State}")
             self.PL_State_data.append(PL_State)
 
     #voltage_data

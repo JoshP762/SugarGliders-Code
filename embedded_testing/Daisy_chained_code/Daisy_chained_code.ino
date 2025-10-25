@@ -165,7 +165,7 @@ void loop() {
    if (altitude > 520 && !servoDeployed) {  // Should be 520 m
     digitalWrite(MOSFET_GATE_PIN, HIGH);
     myservo.write(0);
-    plState = "RELEASED";
+    plState = "R";
     servoStartTime = millis();
     servoActive = true;
     servoDeployed = true;
@@ -178,7 +178,7 @@ void loop() {
     if (command == "SERVO_LOCK") {
       digitalWrite(MOSFET_GATE_PIN, HIGH); // Power the servo
       myservo.write(180);
-      plState="LOCKED";                  // Move to locked position
+      plState="N";                  // Move to locked position
       Serial.println("SERVO_LOCK");
       delay(500);                          // Hold position
       digitalWrite(MOSFET_GATE_PIN, LOW);  // Cut power
@@ -188,7 +188,7 @@ void loop() {
     else if (command == "SERVO_RELEASE") {
       digitalWrite(MOSFET_GATE_PIN, HIGH); // Power the servo
       myservo.write(0);
-      plState = "RELEASED";                  // Move to locked position
+      plState = "R";                  // Move to locked position
       Serial.println("SERVO_RELEASE");
       delay(500);                          // Hold position
       digitalWrite(MOSFET_GATE_PIN, LOW);  // Cut power
