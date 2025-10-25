@@ -5,17 +5,32 @@
 #include <SparkFun_Ublox_Arduino_Library.h>
 #include <Servo.h>
 //#include <XBee.h>
-//#include <SoftwareSerial.h>
+#include <SoftwareSerial.h>
+#include <string.h>
 
 // I2C Pins for Pico (GP16 = SDA, GP17 = SCL)
 const int I2CSDA = 16;
 const int I2CSCL = 17;
+
+static int packetCount = 0; // Move this outside loop
+
+bool telemetryActive = true;
+bool landingActionsTriggered = false;
 
 const int voltagePin = 26; // GP26 = ADC0
 
 #define MOSFET_GATE_PIN 27 // Example: Connect MOSFET gate to GP1  For Servo
 #define SERVO_SIGNAL_PIN 20 // Example: Connect servo signal to GP0
 
+#define LED_GATE_PIN 21 // Example: Connect MOSFET gate to GP1
+
+#define BUZZER_GATE_PIN 22 // Example: Connect MOSFET gate to GP1
+
+SoftwareSerial openLog(1,0);
+
+int ledPin=LED_BUILTIN;
+
+String plState = "RELEASED"; // Default state
 
 bool servoDeployed = false;
 unsigned long servoStartTime = 0;
@@ -43,10 +58,21 @@ void setup() {
   Serial1.setRX(13);
   Serial1.begin(9600);
 
+  pinMode(ledPin,OUTPUT);
+  openLog.begin(9600);   
+
 
   pinMode(MOSFET_GATE_PIN, OUTPUT); // Set MOSFET control pin as output
   digitalWrite(MOSFET_GATE_PIN, LOW); // Ensure MOSFET is initially off
   myservo.attach(SERVO_SIGNAL_PIN);   // Attach servo signal
+
+
+
+  pinMode(LED_GATE_PIN, OUTPUT); // Set MOSFET control pin as output
+  digitalWrite(LED_GATE_PIN, LOW); // Ensure MOSFET is initially off
+
+  pinMode(BUZZER_GATE_PIN, OUTPUT); // Set MOSFET control pin as output
+  digitalWrite(BUZZER_GATE_PIN, LOW); // Ensure MOSFET is initially off
 
 
   Serial.println("Initializing sensors...");
@@ -73,7 +99,7 @@ void setup() {
     //while (1);
   }
   gps.setI2COutput(COM_TYPE_NMEA); // Optional: UBX or NMEA
-  gps.setNMEAOutputPort(Serial);   // Pipe NMEA to Serial
+  gps.setNMEAOutputPort(Serial1);   // Pipe NMEA to Serial
 
   delay(1000);
 
@@ -92,34 +118,33 @@ void loop() {
   bno.getEvent(&accel, Adafruit_BNO055::VECTOR_ACCELEROMETER);
   bno.getEvent(&gravity, Adafruit_BNO055::VECTOR_GRAVITY);
 
-  Serial.print("Orient: ");
-  Serial.print(orientation.orientation.x); Serial.print(", ");
-  Serial.print(orientation.orientation.y); Serial.print(", ");
-  Serial.println(orientation.orientation.z);
+  Serial1.print("Orient: ");
+  Serial1.print(orientation.orientation.x); Serial1.print(", ");
+  Serial1.print(orientation.orientation.y); Serial1.print(", ");
+  Serial1.println(orientation.orientation.z);
 
-  Serial.print("GYRO_R = ");
-  Serial.print(gyro.gyro.x); Serial.print("\n");
+  Serial1.print("GYRO_R = ");
+  Serial1.print(gyro.gyro.x); Serial1.print("\n");
 
-  Serial.print("GYRO_P = ");
-  Serial.print(gyro.gyro.y); Serial.print("\n");
+  Serial1.print("GYRO_P = ");
+  Serial1.print(gyro.gyro.y); Serial1.print("\n");
   
-  Serial.print("GYRO_Y = ");
-  Serial.println(gyro.gyro.z);
+  Serial1.print("GYRO_Y = ");
+  Serial1.println(gyro.gyro.z);
 
-  Serial.print("Accel = ");
-  Serial.println(accel.acceleration.z);
+  Serial1.print("Accel = ");
+  Serial1.println(accel.acceleration.z);
 
-  Serial1.println("udfskdfhld");
-  delay(1000); // Send every second
+
 
   // Voltage
   int raw = analogRead(voltagePin); // 0–4095 for 12-bit ADC 
-  float voltage = (raw * (3.3 / 1023.0))*5; // Convert to volts
-  float battery=voltage/2.0;
+  float voltage = 2*((raw * (3.3 / 1023.0))*5); // Convert to volts
+  // float battery=voltage/2.0;
 
 
-  Serial.print("Voltage = ");
-  Serial.println(voltage, 2); // Print with 2 decimal places
+  Serial1.print("Voltage = ");
+  Serial1.println(voltage, 2); // Print with 2 decimal places
 
   delay(250);
 
@@ -127,32 +152,33 @@ void loop() {
   // BMP388 Pressure & Altitude
   if (bmp.performReading()) {
     float altitude = bmp.readAltitude(1013.25);
-    Serial.print("Pressure = ");
-    Serial.print(bmp.pressure / 100.0); Serial.print(" hPa\t");
-    Serial.print("\nAltitude = ");
-    Serial.print(bmp.readAltitude(1013.25)); Serial.println(" m");
-    Serial.print("Temperature = "); Serial.print(bmp.temperature);
-    Serial.println(" *C");
+    Serial1.print("Pressure = ");
+    Serial1.print(bmp.pressure / 100.0); Serial1.print(" hPa\t");
+    Serial1.print("\nAltitude = ");
+    Serial1.print(bmp.readAltitude(1013.25)); Serial1.println(" m");
+    Serial1.print("Temperature = "); Serial1.print(bmp.temperature);
+    Serial1.println(" *C");
 
   // Servo
 
   // Release (0 Degrees)
-   if (altitude > 110 && !servoDeployed) {  // Should be 520 m
-    Serial.println("SW");
+   if (altitude > 520 && !servoDeployed) {  // Should be 520 m
     digitalWrite(MOSFET_GATE_PIN, HIGH);
     myservo.write(0);
+    plState = "RELEASED";
     servoStartTime = millis();
     servoActive = true;
     servoDeployed = true;
   }
 }
   // Lock (180 Degrees)
-  if(Serial.available()){
-    String command = Serial.readStringUntil('\n');
+  if(Serial1.available()){
+    String command = Serial1.readStringUntil('\n');
     command.trim(); // Remove whitespace
     if (command == "SERVO_LOCK") {
       digitalWrite(MOSFET_GATE_PIN, HIGH); // Power the servo
-      myservo.write(180);                  // Move to locked position
+      myservo.write(180);
+      plState="LOCKED";                  // Move to locked position
       Serial.println("SERVO_LOCK");
       delay(500);                          // Hold position
       digitalWrite(MOSFET_GATE_PIN, LOW);  // Cut power
@@ -161,16 +187,73 @@ void loop() {
   // Release (0 Degrees)
     else if (command == "SERVO_RELEASE") {
       digitalWrite(MOSFET_GATE_PIN, HIGH); // Power the servo
-      myservo.write(0);                  // Move to locked position
+      myservo.write(0);
+      plState = "RELEASED";                  // Move to locked position
       Serial.println("SERVO_RELEASE");
       delay(500);                          // Hold position
       digitalWrite(MOSFET_GATE_PIN, LOW);  // Cut power
     }
 }
 
-// States
-  
 
+// LED and BUZZER code
+if (Serial.available()) {
+  String command = Serial.readStringUntil('\n');
+  command.trim();
+
+  if (command == "1") {
+    digitalWrite(LED_GATE_PIN, HIGH);
+    Serial.println("LED ON");
+  } else if (command == "0") {
+    digitalWrite(LED_GATE_PIN, LOW);
+    Serial.println("LED OFF");
+  } else if (command == "3") {
+    digitalWrite(BUZZER_GATE_PIN, HIGH);
+    Serial.println("BUZZER ON");
+  } else if (command == "4") {
+    digitalWrite(BUZZER_GATE_PIN, LOW);
+    Serial.println("BUZZER OFF");
+  }
+}
+
+
+
+float altitude = bmp.readAltitude(1013.25);
+
+  // States
+String flightState = "";
+
+if (altitude < 50) {
+  flightState = "LAUNCH_READY";
+}
+else if (altitude >= 50 && altitude < 520) {
+  flightState = "ASCENT";
+}
+else if (servoActive) {
+  flightState = "SEPARATE";
+
+}
+else if (altitude >= 520) {
+  flightState = "DESCENT";
+}
+else {
+  flightState = "LANDED";
+}
+
+if (flightState == "LANDED" && !landingActionsTriggered) {
+    telemetryActive = false;
+    digitalWrite(LED_GATE_PIN, HIGH);
+    digitalWrite(BUZZER_GATE_PIN, HIGH);
+    landingActionsTriggered = true;
+    Serial1.println("Landing detected — telemetry stopped, LED and buzzer activated.");
+  }
+
+
+  Serial1.print("SW_STATE = ");
+  Serial1.println(flightState);
+
+  Serial1.print("PL_STATE = ");
+  Serial1.println(plState);
 
 
 if (servoActive && millis() - servoStartTime > 500) {
@@ -182,18 +265,36 @@ if (servoActive && millis() - servoStartTime > 500) {
   gps.checkUblox(); // Process incoming GPS data
 
   if (gps.getFixType() > 1) { // 2D or 3D fix
-  Serial.print("Latitude = ");
-  Serial.println(gps.getLatitude() / 10000000.0, 7);
-  Serial.print("Longitude = ");
-  Serial.println(gps.getLongitude() / 10000000.0, 7);
+  Serial1.print("Latitude = ");
+  Serial1.println(gps.getLatitude() / 10000000.0, 7);
+  Serial1.print("Longitude = ");
+  Serial1.println(gps.getLongitude() / 10000000.0, 7);
   }  
   else {
-  Serial.println("Waiting for GPS fix...");
+  Serial1.println("Waiting for GPS fix...");
   }
 
-  static int packetCount = 0;
-  Serial.print("Packet_Count = ");
-  Serial.println(packetCount++);
+  Serial1.print("Packet_Count = ");
+  Serial1.println(packetCount++);
+
+  // XBee telemetry format
+  if(telemetryActive){
+    openLog.print("2,");
+    openLog.print(millis() / 1000.0); openLog.print(",");
+    openLog.print(packetCount); openLog.print(",");
+    openLog.print(flightState); openLog.print(",");
+    openLog.print(plState); openLog.print(",");
+    openLog.print(bmp.readAltitude(1013.25)); openLog.print(",");
+    openLog.print(bmp.temperature); openLog.print(",");
+    openLog.print(voltage, 2); openLog.print(","); 
+    openLog.print(gps.getLatitude() / 10000000.0, 4); openLog.print(","); // GPS_LATITUDE
+    openLog.print(gps.getLongitude() / 10000000.0, 4); openLog.print(","); // GPS_LONGITUDE
+    openLog.print(gyro.gyro.x); openLog.print(","); 
+    openLog.print(gyro.gyro.y); openLog.print(",");
+    openLog.print(gyro.gyro.z); openLog.print(",,"); 
+    openLog.println(accel.acceleration.z);
+  }
+
 
   delay(250);
 

@@ -173,7 +173,7 @@ class SugarGlidersGS(QMainWindow):
 
     #SW_State_Data
     def read_SW_State_data(self, line):
-        match = re.search(r'SW_State = ([\d\.]+)', line)
+        match = re.search(r'SW_STATE = (\w+)', line)
         if match:
             SW_State = float(match.group(1))
             self.SWState.setText(f"SW_State: {SW_State:.2f}")
@@ -181,7 +181,7 @@ class SugarGlidersGS(QMainWindow):
     
     #PL_State_Data
     def read_PL_State_data(self, line):
-        match = re.search(r'PL_State = ([\d\.]+)', line)
+        match = re.search(r'PL_STATE = (\w+)', line)
         if match:
             PL_State = float(match.group(1))
             self.PLState.setText(f"PL_State: {PL_State:.2f}")
@@ -455,7 +455,7 @@ class SugarGlidersGS(QMainWindow):
                 border-radius: 75px;
                 padding: 5px;
             """)
-            self.serial.write(b'0\n')
+            self.serial.write(b'1\n')
         else:
             self.LED.setStyleSheet("""
                 background-color: white;
@@ -463,7 +463,7 @@ class SugarGlidersGS(QMainWindow):
                 border-radius: 75px;
                 padding: 5px;
             """)
-            self.serial.write(b'1\n')
+            self.serial.write(b'0\n')
     def buzzer_clicked(self):
         self.buzzer_on = not self.buzzer_on
         if self.buzzer_on:
