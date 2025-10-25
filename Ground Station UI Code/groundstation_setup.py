@@ -455,6 +455,7 @@ class SugarGlidersGS(QMainWindow):
                 border-radius: 75px;
                 padding: 5px;
             """)
+            self.serial.write(b'0\n')
         else:
             self.LED.setStyleSheet("""
                 background-color: white;
@@ -462,6 +463,7 @@ class SugarGlidersGS(QMainWindow):
                 border-radius: 75px;
                 padding: 5px;
             """)
+            self.serial.write(b'1\n')
     def buzzer_clicked(self):
         self.buzzer_on = not self.buzzer_on
         if self.buzzer_on:
@@ -471,6 +473,7 @@ class SugarGlidersGS(QMainWindow):
                 border-radius: 75px;
                 padding: 5px;
             """)
+            self.serial.write(b'3\n')
         else:
             self.buzzer.setStyleSheet("""
                 background-color: white;
@@ -478,6 +481,7 @@ class SugarGlidersGS(QMainWindow):
                 border-radius: 75px;
                 padding: 5px;
             """)
+            self.serial.write(b'4\n')
 
     def portrefresh(self):
         ports=list_ports.comports()
