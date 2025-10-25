@@ -4,8 +4,8 @@
 #include <Adafruit_BMP3XX.h>
 #include <SparkFun_Ublox_Arduino_Library.h>
 #include <Servo.h>
-#include <XBee.h>
-#include <SoftwareSerial.h>
+//#include <XBee.h>
+//#include <SoftwareSerial.h>
 
 // I2C Pins for Pico (GP16 = SDA, GP17 = SCL)
 const int I2CSDA = 16;
@@ -16,9 +16,6 @@ const int voltagePin = 26; // GP26 = ADC0
 #define MOSFET_GATE_PIN 27 // Example: Connect MOSFET gate to GP1  For Servo
 #define SERVO_SIGNAL_PIN 20 // Example: Connect servo signal to GP0
 
-SoftwareSerial openLog(1,0);
-
-int ledPin=LED_BUILTIN;
 
 bool servoDeployed = false;
 unsigned long servoStartTime = 0;
@@ -43,7 +40,7 @@ void setup() {
   Wire.begin();
 
   Serial1.setTX(12);
-  Serial1.setTX(13);
+  Serial1.setRX(13);
   Serial1.begin(9600);
 
 
@@ -57,40 +54,23 @@ void setup() {
   // BNO055
   if (!bno.begin()) {
     Serial.println("BNO055 not detected. Check wiring.");
-    while (1);
+    //while (1);
   }
 
   // BMP388
   if (!bmp.begin_I2C()) {
     Serial.println("BMP388 not detected. Check wiring.");
-    while (1);
+    //while (1);
   }
   bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
   bmp.setPressureOversampling(BMP3_OVERSAMPLING_8X);
   bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);
   bmp.setOutputDataRate(BMP3_ODR_50_HZ);
 
-  //openlog_setup
-  pinMode(ledPin,OUTPUT);
-  openLog.begin(9600);      // OpenLog default baud rate
-  
-  // Send data to OpenLog
-  openLog.println("Run OpenLog UART Test");
-  openLog.println("This is recorded to the default log file");
-
-  // Create a new file (OpenLog automatically creates new files if you send 'new' command)
-  openLog.println("new NewFile.txt");
-  delay(100); // Give OpenLog time to process
-
-  openLog.println("This is written to NewFile.txt");
-  openLog.println("Use appendFile for more control");
-
-  
-  
   // ZOE-M8Q
   if (!gps.begin()) {
     Serial.println("ZOE-M8Q not detected. Check wiring.");
-    while (1);
+    //while (1);
   }
   gps.setI2COutput(COM_TYPE_NMEA); // Optional: UBX or NMEA
   gps.setNMEAOutputPort(Serial);   // Pipe NMEA to Serial
@@ -112,12 +92,6 @@ void loop() {
   bno.getEvent(&accel, Adafruit_BNO055::VECTOR_ACCELEROMETER);
   bno.getEvent(&gravity, Adafruit_BNO055::VECTOR_GRAVITY);
 
-  //Open Log LED
-  digitalWrite(ledPin, HIGH);
-  delay(1000);
-  digitalWrite(ledPin, LOW);
-  delay(1000);
-
   Serial.print("Orient: ");
   Serial.print(orientation.orientation.x); Serial.print(", ");
   Serial.print(orientation.orientation.y); Serial.print(", ");
@@ -135,10 +109,11 @@ void loop() {
   Serial.print("Accel = ");
   Serial.println(accel.acceleration.z);
 
-  
+  Serial1.println("udfskdfhld");
+  delay(1000); // Send every second
 
   // Voltage
-  int raw = analogRead(voltagePin); // 0–4095 for 12-bit ADC
+  int raw = analogRead(voltagePin); // 0–4095 for 12-bit ADC 
   float voltage = (raw * (3.3 / 1023.0))*5; // Convert to volts
   float battery=voltage/2.0;
 
@@ -163,7 +138,7 @@ void loop() {
 
   // Release (0 Degrees)
    if (altitude > 110 && !servoDeployed) {  // Should be 520 m
-    Serial.println("SW_State = 2");
+    Serial.println("SW");
     digitalWrite(MOSFET_GATE_PIN, HIGH);
     myservo.write(0);
     servoStartTime = millis();
